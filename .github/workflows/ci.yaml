@@ -1,77 +1,81 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  - pull_request
+  - push
 
 jobs:
-  build:
+  tests:
+    name: Tests
+
     runs-on: ubuntu-latest
 
     services:
       postgres:
-        image: postgres:latest
+        image: postgres:15
         env:
-          POSTGRES_DB: laravel
+          POSTGRES_DB: testing
           POSTGRES_USER: root
           POSTGRES_PASSWORD: root
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd="pg_isready -U root"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: 8.2
-        extensions: pcov, xdebug
-        coverage: pcov
+      - name: Setup PHP with Xdebug
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: xdebug
 
-    - name: Install dependencies
-      run: composer install
+      - name: Install dependencies with composer
+        run: composer install --no-ansi --no-interaction --no-progress --prefer-dist
 
-    - name: Copy .env.example to .env
-      run: cp .env.example .env
+      - name: Copy .env
+        run: cp .env.example .env
 
-    - name: Update .env file
-      run: |
-        sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
-        sed -i 's/DB_DATABASE=.*/DB_DATABASE=laravel/' .env
-        sed -i 's/DB_USERNAME=.*/DB_USERNAME=root/' .env
-        sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=root/' .env
-        echo "DB_SSLMODE=disable" >> .env
+      - name: Update .env for PostgreSQL
+        run: |
+          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=pgsql/' .env
+          sed -i 's/# DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+          sed -i 's/# DB_PORT=.*/DB_PORT=5432/' .env
+          sed -i 's/# DB_DATABASE=.*/DB_DATABASE=testing/' .env
+          sed -i 's/# DB_USERNAME=.*/DB_USERNAME=root/' .env
+          sed -i 's/# DB_PASSWORD=.*/DB_PASSWORD=root/' .env
+          echo "DB_SSLMODE=disable" >> .env
 
-    - name: Display .env file
-      run: cat .env
+      - name: Display .env file
+        run: cat .env
 
-    - name: Wait for PostgreSQL to be ready
-      run: |
-        until pg_isready -h 127.0.0.1 -p 5432 -U root; do
-          echo 'Waiting for PostgreSQL...'
-          sleep 5
-        done
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until pg_isready -h 127.0.0.1 -p 5432 -U root; do
+            echo 'Waiting for PostgreSQL...'
+            sleep 5
+          done
 
-    - name: Generate application key
-      run: php artisan key:generate
+      - name: Generate application key
+        run: php artisan key:generate
 
-    - name: Run migrations
-      run: php artisan migrate --force
+      - name: Run migrations
+        run: php artisan migrate --force
 
-    - name: Run tests with phpunit
-      run: vendor/bin/phpunit --coverage-clover=coverage.xml
+      - name: Run tests with phpunit
+        run:  php artisan test
 
-    - name: SonarQube Scan
-      uses: SonarSource/sonarqube-scan-action@v4
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Run coverage tests with phpunit/phpunit
+        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

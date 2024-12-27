@@ -28,7 +28,7 @@ jobs:
       - name: Update .env for SQLite
         run: |
           sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
-          sed -i 's/DB_DATABASE=.*/DB_DATABASE=database\/database.sqlite/' .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=\/home\/runner\/work\/Pleno-Backend\/Pleno-Backend\/database\/database.sqlite/' .env
 
       - name: Create SQLite database
         run: |

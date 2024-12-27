@@ -117,7 +117,7 @@ class UserServiceTest extends TestCase
             'password' => 'password'
         ];
 
-        $user = $this->userService->create($data);
+        $this->userService->create($data);
 
         $foundUser = $this->userService->findByUsername($data['name']);
 

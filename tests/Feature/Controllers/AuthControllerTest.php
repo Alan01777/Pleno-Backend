@@ -28,6 +28,24 @@ class AuthControllerTest extends TestCase
             ->assertJsonStructure(['token']);
     }
 
+    public function test_login_with_invalid_credentials(): void
+    {
+        $data = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'password' => 'password',
+        ];
+
+        $this->postJson('/api/register', $data);
+
+        $this->postJson('/api/login', [
+            'email' => $data['email'],
+            'password' => 'invalid-password',
+        ])
+            ->assertStatus(401)
+            ->assertJson(['message' => __('auth.failed')]);
+    }
+
     public function test_logout(): void
     {
         $data = [

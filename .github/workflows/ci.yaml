@@ -44,6 +44,12 @@ jobs:
       - name: Run migrations
         run: php artisan migrate --force
 
+      - name: Verify SQLite database file
+        run: ls -l database
+
+      - name: Check database file permissions
+        run: ls -l database/database.sqlite
+
       - name: Run tests with phpunit
         run: vendor/bin/phpunit --coverage-clover=coverage.xml
 

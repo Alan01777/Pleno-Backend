@@ -24,14 +24,14 @@ class UserRequest extends FormRequest
     public function rules(): array
     {
         if ($this->isMethod('post')) {
-            return $rules = [
+            return [
                 'name' => 'required|string',
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required|string|min:6'
             ];
         }
 
-        return $rules = [
+        return [
             'name' => 'string',
             'email' => 'email|unique:users,email',
             'password' => 'string|min:6'

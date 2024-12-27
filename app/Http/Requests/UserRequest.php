@@ -23,8 +23,6 @@ class UserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = [];
-
         if ($this->isMethod('post')) {
             return $rules = [
                 'name' => 'required|string',

@@ -12,4 +12,5 @@ interface UserRepositoryInterface
     public function delete(int $id): bool;
     public function findByUsername(string $username): ?User;
     public function findByEmail(string $email): ?User;
+    public function deleteTokens(User $user): void;
 }

@@ -44,4 +44,9 @@ class UserRepository implements UserRepositoryInterface
     {
         return User::where('email', $email)->first();
     }
+
+    public function deleteTokens(User $user): void
+    {
+        $user->tokens()->delete();
+    }
 }

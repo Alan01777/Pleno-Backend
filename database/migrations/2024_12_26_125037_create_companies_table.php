@@ -16,8 +16,8 @@ return new class extends Migration
             $table->timestamps();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('cnpj')->unique();
-            $table->string('razao_social')->unique();
-            $table->string('nome_fantasia')->nullable();
+            $table->string('legal_name')->unique();
+            $table->string('trade_name')->nullable();
             $table->string('address');
             $table->string('phone');
             $table->string('email')->unique();

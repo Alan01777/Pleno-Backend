@@ -12,12 +12,13 @@ class Company extends Model
     use HasFactory;
     protected $fillable = [
         'cnpj',
-        'razao_social',
-        'nome_fantasia',
+        'legal_name',
+        'trade_name',
         'address',
         'phone',
         'email',
         'size',
+        'user_id'
     ];
 
     /**

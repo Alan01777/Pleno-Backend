@@ -16,15 +16,15 @@ interface AuthServiceInterface
     /**
      * Log in a user with the provided credentials.
      *
-     * @param array $data
-     * @return JsonResponse
+     * @param array $data The user credentials.
+     * @return JsonResponse The JSON response containing the authentication result.
      */
     public function login(array $data): JsonResponse;
 
     /**
      * Log out the authenticated user.
      *
-     * @return void
+     * @return void The JSON response containing the authentication result.
      */
     public function logout(): void;
 }

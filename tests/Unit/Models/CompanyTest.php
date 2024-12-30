@@ -29,8 +29,8 @@ class CompanyTest extends TestCase
 
         $this->assertEquals([
             'cnpj',
-            'razao_social',
-            'nome_fantasia',
+            'legal_name',
+            'trade_name',
             'address',
             'phone',
             'email',

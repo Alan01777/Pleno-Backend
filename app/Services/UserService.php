@@ -27,6 +27,16 @@ class UserService implements UserServiceInterface
     }
 
     /**
+     * Find all users.
+     *
+     * @return array
+     */
+    public function findAll(): array
+    {
+        return $this->userRepository->findAll();
+    }
+
+    /**
      * Create a new user.
      *
      * @param array $data

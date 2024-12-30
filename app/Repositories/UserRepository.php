@@ -26,6 +26,16 @@ class UserRepository implements UserRepositoryInterface
     }
 
     /**
+     * Find all users.
+     *
+     * @return array
+     */
+    public function findAll(): array
+    {
+        return User::where('id', '>', 0)->get()->toArray();
+    }
+
+    /**
      * Find a user by ID.
      *
      * @param int $id

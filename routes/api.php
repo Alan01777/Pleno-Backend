@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CompanyController;
 
 // Health check
 Route::get('/healthcheck', function () {
@@ -25,4 +26,26 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/username/{username}', [UserController::class, 'findByUsername']); // Find user by username
         Route::get('/email/{email}', [UserController::class, 'findByEmail']); // Find user by email
     });
+});
+
+
+// // Company routes
+// Route::middleware('auth:sanctum')->group(function () {
+//     Route::prefix('companies')->group(function () {
+//         Route::get('/', [CompanyController::class, 'index']); // List all companies
+//         Route::post('/', [CompanyController::class, 'store']); // Create a new company
+//         Route::get('/{id}', [CompanyController::class, 'show']); // Read company by ID
+//         Route::put('/{id}', [CompanyController::class, 'update']); // Update company
+//         Route::delete('/{id}', [CompanyController::class, 'destroy']); // Delete company
+//     });
+// });
+
+
+// Company routes
+Route::prefix('companies')->group(function () {
+    Route::get('/', [CompanyController::class, 'index']); // List all companies
+    Route::post('/', [CompanyController::class, 'store']); // Create a new company
+    Route::get('/{id}', [CompanyController::class, 'show']); // Read company by ID
+    Route::put('/{id}', [CompanyController::class, 'update']); // Update company
+    Route::delete('/{id}', [CompanyController::class, 'destroy']); // Delete company
 });

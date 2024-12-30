@@ -49,6 +49,15 @@ class UserRepositoryTest extends TestCase
         $this->assertEquals('John Doe', $foundUser->name);
     }
 
+    public function test_find_all_users(): void
+    {
+        User::factory()->count(5)->create();
+
+        $users = $this->userRepository->findAll();
+
+        $this->assertCount(5, $users);
+    }
+
     public function test_find_user_with_invalid_id(): void
     {
         $result = $this->userRepository->findById(0);

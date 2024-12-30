@@ -14,12 +14,12 @@ class UserRepository implements UserRepositoryInterface
 
     public function findById(int $id): ?User
     {
-        return User::find($id);
+        return User::where('id', $id)->first();
     }
 
     public function update(int $id, array $data): bool
     {
-        $user = User::find($id);
+        $user = User::where('id', $id)->first();;
         if ($user) {
             return $user->update($data);
         }
@@ -28,7 +28,7 @@ class UserRepository implements UserRepositoryInterface
 
     public function delete(int $id): bool
     {
-        $user = User::find($id);
+        $user = User::where('id', $id)->first();;
         if ($user) {
             return $user->delete();
         }

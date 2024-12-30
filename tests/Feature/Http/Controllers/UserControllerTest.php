@@ -24,7 +24,10 @@ class UserControllerTest extends TestCase
 
         $response->assertStatus(200);
 
-        return $response->json('token');
+        return [
+            'token' => $response->json('token'),
+            'user' => $user
+        ];
     }
 
     public function test_store_user(): void
@@ -56,8 +59,9 @@ class UserControllerTest extends TestCase
 
     public function test_show_user(): void
     {
-        $token = $this->authenticate();
-        $user = User::factory()->create();
+        $authData = $this->authenticate();
+        $token = $authData['token'];
+        $user = $authData['user'];
 
         $response = $this->getJson("/api/users/{$user->id}", [
             'Authorization' => "Bearer $token"
@@ -69,8 +73,9 @@ class UserControllerTest extends TestCase
 
     public function test_update_user(): void
     {
-        $token = $this->authenticate();
-        $user = User::factory()->create();
+        $authData = $this->authenticate();
+        $token = $authData['token'];
+        $user = $authData['user'];
 
         $data = [
             'name' => 'Jane Doe',
@@ -87,8 +92,9 @@ class UserControllerTest extends TestCase
 
     public function test_delete_user(): void
     {
-        $token = $this->authenticate();
-        $user = User::factory()->create();
+        $authData = $this->authenticate();
+        $token = $authData['token'];
+        $user = $authData['user'];
 
         $response = $this->deleteJson("/api/users/{$user->id}", [], [
             'Authorization' => "Bearer $token"
@@ -101,27 +107,29 @@ class UserControllerTest extends TestCase
 
     public function test_find_user_by_username(): void
     {
-        $token = $this->authenticate();
-        $user = User::factory()->create(['name' => 'John Doe']);
+        $authData = $this->authenticate();
+        $token = $authData['token'];
+        $user = $authData['user'];
 
         $response = $this->getJson("/api/users/username/{$user->name}", [
             'Authorization' => "Bearer $token"
         ]);
 
         $response->assertStatus(200)
-            ->assertJson(['name' => 'John Doe']);
+            ->assertJson(['name' => $user->name]);
     }
 
     public function test_find_user_by_email(): void
     {
-        $token = $this->authenticate();
-        $user = User::factory()->create(['email' => 'unique@example.com']);
+        $authData = $this->authenticate();
+        $token = $authData['token'];
+        $user = $authData['user'];
 
         $response = $this->getJson("/api/users/email/{$user->email}", [
             'Authorization' => "Bearer $token"
         ]);
 
         $response->assertStatus(200)
-            ->assertJson(['email' => 'unique@example.com']);
+            ->assertJson(['email' => $user->email]);
     }
 }

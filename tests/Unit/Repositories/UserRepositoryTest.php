@@ -6,7 +6,6 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\QueryException;
 
 class UserRepositoryTest extends TestCase
 {
@@ -50,6 +49,13 @@ class UserRepositoryTest extends TestCase
         $this->assertEquals('John Doe', $foundUser->name);
     }
 
+    public function test_find_user_with_invalid_id(): void
+    {
+        $result = $this->userRepository->findById(0);
+
+        $this->assertNull($result);
+    }
+
     public function test_update_user(): void
     {
         $data = [
@@ -72,6 +78,26 @@ class UserRepositoryTest extends TestCase
         $this->assertEquals('Jane Doe', $updatedUser->name);
     }
 
+    public function test_update_user_with_invalid_id(): void
+    {
+        $data = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'password' => bcrypt('password'),
+        ];
+
+        $this->userRepository->create($data);
+
+        $updateData = [
+            'name' => 'Jane Doe',
+            'email' => 'jane@example.com',
+        ];
+
+        $result = $this->userRepository->update(0, $updateData);
+
+        $this->assertFalse($result);
+    }
+
     public function test_delete_user(): void
     {
         $data = [
@@ -87,6 +113,21 @@ class UserRepositoryTest extends TestCase
         $deletedUser = $this->userRepository->findById($user->id);
 
         $this->assertNull($deletedUser);
+    }
+
+    public function test_delete_user_with_invalid_id(): void
+    {
+        $data = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'password' => bcrypt('password'),
+        ];
+
+        $this->userRepository->create($data);
+
+        $result = $this->userRepository->delete(0);
+
+        $this->assertFalse($result);
     }
 
     public function test_find_user_by_username(): void

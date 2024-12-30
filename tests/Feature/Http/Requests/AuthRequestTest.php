@@ -5,18 +5,36 @@ namespace Tests\Feature\Http\Requests;
 use App\Http\Requests\AuthRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\User;
+use PHPUnit\Framework\Attributes\DataProvider;
 
+/**
+ * Class AuthRequestTest
+ *
+ * This class contains tests for the AuthRequest class, which handles the authorization
+ * and validation logic for authentication requests in the application.
+ *
+ * @package Tests\Feature\Http\Requests
+ */
 class AuthRequestTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_authorize()
+    private const LOGIN_URL = '/api/login';
+
+    /**
+     * Test that the AuthRequest is authorized.
+     */
+    public function test_authorize(): void
     {
         $request = new AuthRequest();
         $this->assertTrue($request->authorize());
     }
 
-    public function test_rules()
+    /**
+     * Test the validation rules.
+     */
+    public function test_rules(): void
     {
         $request = new AuthRequest();
         $rules = $request->rules();
@@ -27,7 +45,10 @@ class AuthRequestTest extends TestCase
         $this->assertEquals('required|string|min:6', $rules['password']);
     }
 
-    public function test_messages()
+    /**
+     * Test the custom validation messages.
+     */
+    public function test_messages(): void
     {
         $request = new AuthRequest();
         $messages = $request->messages();
@@ -42,11 +63,50 @@ class AuthRequestTest extends TestCase
         $this->assertEquals('Password must be at least 6 characters', $messages['password.min']);
     }
 
-    public function test_failed_validation()
+    /**
+     * Test failed validation for the login request.
+     */
+    #[DataProvider('invalidLoginDataProvider')]
+    public function test_failed_validation(array $invalidData, array $expectedErrors): void
     {
-        $response = $this->postJson('/api/login', []);
+        $response = $this->postJson(self::LOGIN_URL, $invalidData);
 
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['email', 'password']);
+        $response->assertJsonValidationErrors($expectedErrors);
+    }
+
+    /**
+     * Data provider for test_failed_validation.
+     *
+     * @return array
+     */
+    public static function invalidLoginDataProvider(): array
+    {
+        return [
+            [[], ['email', 'password']],
+            [['email' => 'invalid-email'], ['email', 'password']],
+            [['password' => 'short'], ['email', 'password']],
+            [['email' => 'invalid-email', 'password' => 'short'], ['email', 'password']],
+        ];
+    }
+
+    /**
+     * Test successful validation for the login request.
+     */
+    public function test_successful_validation(): void
+    {
+        User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $validData = [
+            'email' => 'john@example.com',
+            'password' => 'password',
+        ];
+
+        $response = $this->postJson(self::LOGIN_URL, $validData);
+
+        $response->assertStatus(200);
     }
 }

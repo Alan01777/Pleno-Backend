@@ -19,7 +19,7 @@ class UserRepository implements UserRepositoryInterface
 
     public function update(int $id, array $data): bool
     {
-        $user = User::where('id', $id)->first();;
+        $user = User::where('id', $id)->first();
         if ($user) {
             return $user->update($data);
         }
@@ -28,7 +28,7 @@ class UserRepository implements UserRepositoryInterface
 
     public function delete(int $id): bool
     {
-        $user = User::where('id', $id)->first();;
+        $user = User::where('id', $id)->first();
         if ($user) {
             return $user->delete();
         }

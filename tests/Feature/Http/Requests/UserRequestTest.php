@@ -6,19 +6,38 @@ use App\Http\Requests\UserRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
+use PHPUnit\Framework\Attributes\DataProvider;
+
+/**
+ * Class UserRequestTest
+ *
+ * This class contains feature tests for the UserRequest class.
+ * It tests the authorization, validation rules, custom messages, and failed validation scenarios.
+ *
+ * @package Tests\Feature\Http\Requests
+ */
 
 class UserRequestTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected function authenticate()
+    private const REGISTER_URL = '/api/register';
+    private const LOGIN_URL = '/api/login';
+    private const USERS_URL = '/api/users';
+
+    /**
+     * Authenticate a user and return the token and user.
+     *
+     * @return array
+     */
+    protected function authenticate(): array
     {
         $user = User::factory()->create([
             'email' => 'auth@example.com',
             'password' => bcrypt('password'),
         ]);
 
-        $response = $this->postJson('/api/login', [
+        $response = $this->postJson(self::LOGIN_URL, [
             'email' => 'auth@example.com',
             'password' => 'password',
         ]);
@@ -31,16 +50,22 @@ class UserRequestTest extends TestCase
         ];
     }
 
-    public function test_authorize()
+    /**
+     * Test that the UserRequest is authorized.
+     */
+    public function test_authorize(): void
     {
         $request = new UserRequest();
         $this->assertTrue($request->authorize());
     }
 
-    public function test_rules_for_post_method()
+    /**
+     * Test the validation rules for the POST method.
+     */
+    public function test_rules_for_post_method(): void
     {
         // Create a new request instance with the POST method
-        $request = UserRequest::create('/api/users', 'POST');
+        $request = UserRequest::create(self::USERS_URL, 'POST');
 
         $rules = $request->rules();
 
@@ -52,7 +77,10 @@ class UserRequestTest extends TestCase
         $this->assertEquals('required|string|min:6', $rules['password']);
     }
 
-    public function test_rules_for_other_methods()
+    /**
+     * Test the validation rules for other methods (e.g., PUT).
+     */
+    public function test_rules_for_other_methods(): void
     {
         $request = new UserRequest();
 
@@ -69,7 +97,10 @@ class UserRequestTest extends TestCase
         $this->assertEquals('string|min:6', $rules['password']);
     }
 
-    public function test_messages()
+    /**
+     * Test the custom validation messages.
+     */
+    public function test_messages(): void
     {
         $request = new UserRequest();
         $messages = $request->messages();
@@ -88,34 +119,83 @@ class UserRequestTest extends TestCase
         $this->assertEquals('Password must be at least 6 characters', $messages['password.min']);
     }
 
-    public function test_failed_validation_for_post_method()
+    /**
+     * Test failed validation for the POST method.
+     */
+    public function test_failed_validation_for_post_method(): void
     {
-        $response = $this->postJson('/api/register', []);
+        $response = $this->postJson(self::REGISTER_URL, []);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['name', 'email', 'password']);
     }
 
-    public function test_failed_validation_for_put_method()
+    /**
+     * Test failed validation for the PUT method with invalid data.
+     */
+    #[DataProvider('invalidPutDataProvider')]
+    public function test_failed_validation_for_put_method(array $invalidData, array $expectedErrors): void
     {
         $authData = $this->authenticate();
         $token = $authData['token'];
         $user = $authData['user'];
 
-        // Test with invalid email
-        $response = $this->putJson("/api/users/{$user->id}", ['email' => 'invalid-email'], [
+        $response = $this->putJson(self::USERS_URL . "/{$user->id}", $invalidData, [
             'Authorization' => "Bearer $token"
         ]);
 
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['email']);
+        $response->assertJsonValidationErrors($expectedErrors);
+    }
 
-        // Test with invalid password
-        $response = $this->putJson("/api/users/{$user->id}", ['password' => 'short'], [
+    /**
+     * Data provider for test_failed_validation_for_put_method.
+     *
+     * @return array
+     */
+    public static function invalidPutDataProvider(): array
+    {
+        return [
+            [['email' => 'invalid-email'], ['email']],
+            [['password' => 'short'], ['password']],
+        ];
+    }
+
+    /**
+     * Test successful validation for the POST method.
+     */
+    public function test_successful_validation_for_post_method(): void
+    {
+        $validData = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'password' => 'password',
+        ];
+
+        $response = $this->postJson(self::REGISTER_URL, $validData);
+
+        $response->assertStatus(201);
+    }
+
+    /**
+     * Test successful validation for the PUT method.
+     */
+    public function test_successful_validation_for_put_method(): void
+    {
+        $authData = $this->authenticate();
+        $token = $authData['token'];
+        $user = $authData['user'];
+
+        $validData = [
+            'name' => 'John Doe Updated',
+            'email' => 'john.updated@example.com',
+            'password' => 'newpassword',
+        ];
+
+        $response = $this->putJson(self::USERS_URL . "/{$user->id}", $validData, [
             'Authorization' => "Bearer $token"
         ]);
 
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['password']);
+        $response->assertStatus(200);
     }
 }

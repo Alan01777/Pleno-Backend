@@ -1,13 +1,23 @@
 <?php
 
-namespace Tests\Feature\services;
+namespace Tests\Unit\Services;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use \App\Repositories\UserRepository;
-use App\Services\UserService;
 use Tests\TestCase;
+use App\Models\User;
+use App\Services\UserService;
+use App\Contracts\Repositories\UserRepositoryInterface;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery;
+use Mockery\MockInterface;
 
+/**
+ * Class UserServiceTest
+ *
+ * This class contains unit tests for the UserService.
+ * It tests the CRUD functionalities and various query methods of the UserService.
+ *
+ * @package Tests\Unit\Services
+ */
 class UserServiceTest extends TestCase
 {
     use RefreshDatabase;
@@ -15,120 +25,160 @@ class UserServiceTest extends TestCase
     protected $userService;
     protected $userRepository;
 
+    /**
+     * Set up the test environment.
+     */
     protected function setUp(): void
     {
         parent::setUp();
-        $this->userRepository = new UserRepository();
+
+        $this->userRepository = Mockery::mock(UserRepositoryInterface::class);
         $this->userService = new UserService($this->userRepository);
     }
 
-    public function test_create_user(): void
+    /**
+     * Test creating a user.
+     *
+     * @return void
+     */
+    public function testCreateUser(): void
     {
         $data = [
             'name' => 'John Doe',
-            'email' => 'laravel@email.com',
+            'email' => 'john@example.com',
             'password' => 'password'
         ];
 
-        $user = $this->userService->create($data);
+        $user = User::factory()->make($data);
 
-        $this->assertEquals($data['name'], $user['name']);
-        $this->assertEquals($data['email'], $user['email']);
+        $this->userRepository
+            ->shouldReceive('create')
+            ->once()
+            ->with($data)
+            ->andReturn($user);
+
+        $result = $this->userService->create($data);
+
+        $this->assertEquals($data['name'], $result['name']);
+        $this->assertEquals($data['email'], $result['email']);
     }
 
-    public function test_find_user_by_id(): void
+    /**
+     * Test finding a user by ID.
+     *
+     * @return void
+     */
+    public function testFindUserById(): void
     {
-        $data = [
-            'name' => 'John Doe',
-            'email' => 'laravel@email.com',
-            'password' => 'password'
-        ];
+        $user = User::factory()->make(['id' => 1]);
 
-        $user = $this->userService->create($data);
+        $this->userRepository
+            ->shouldReceive('findById')
+            ->once()
+            ->with($user->id)
+            ->andReturn($user);
 
-        $foundUser = $this->userService->findById($user['id']);
+        $result = $this->userService->findById($user->id);
 
-        $this->assertEquals($data['name'], $foundUser['name']);
-        $this->assertEquals($data['email'], $foundUser['email']);
+        $this->assertEquals($user->toArray(), $result);
     }
 
-
-    public function test_update_user(): void
+    /**
+     * Test updating a user.
+     *
+     * @return void
+     */
+    public function testUpdateUser(): void
     {
-        $data = [
-            'name' => 'John Doe',
-            'email' => 'laravel@email.com',
-            'password' => 'password'
-        ];
-
-        $user = $this->userService->create($data);
-
+        $user = User::factory()->make(['id' => 1]);
         $updateData = [
             'name' => 'Jane Doe',
-            'email' => 'laravelII@email.com',
+            'email' => 'jane@example.com',
         ];
 
-        $this->userService->update($user['id'], $updateData);
+        $this->userRepository
+            ->shouldReceive('update')
+            ->once()
+            ->with($user->id, $updateData)
+            ->andReturn(true);
 
-        $updatedUser = $this->userService->findById($user['id']);
+        $this->userRepository
+            ->shouldReceive('findById')
+            ->once()
+            ->with($user->id)
+            ->andReturn($user);
 
-        $this->assertEquals($updateData['name'], $updatedUser['name']);
-        $this->assertEquals($updateData['email'], $updatedUser['email']);
+        $result = $this->userService->update($user->id, $updateData);
+
+        $this->assertEquals($user->toArray(), $result);
     }
 
-
-    public function test_delete_user(): void
+    /**
+     * Test deleting a user.
+     *
+     * @return void
+     */
+    public function testDeleteUser(): void
     {
-        $data = [
-            'name' => 'John Doe',
-            'email' => 'laravel@email.com',
-            'password' => 'password'
-        ];
+        $user = User::factory()->make(['id' => 1]);
 
-        $user = $this->userService->create($data);
+        $this->userRepository
+            ->shouldReceive('delete')
+            ->once()
+            ->with($user->id)
+            ->andReturn(true);
 
-        $this->userService->delete($user['id']);
+        $result = $this->userService->delete($user->id);
 
-        $this->assertNull($this->userService->findById($user['id']));
+        $this->assertTrue($result);
     }
 
-    public function test_find_user_by_email(): void
+    /**
+     * Test finding a user by email.
+     *
+     * @return void
+     */
+    public function testFindUserByEmail(): void
     {
-        $data = [
-            'name' => 'John Doe',
-            'email' => 'laravel@email.com',
-            'password' => 'password'
-        ];
+        $user = User::factory()->make();
 
-        $user = $this->userService->create($data);
+        $this->userRepository
+            ->shouldReceive('findByEmail')
+            ->once()
+            ->with($user->email)
+            ->andReturn($user);
 
-        $foundUser = $this->userService->findByEmail($data['email']);
+        $result = $this->userService->findByEmail($user->email);
 
-        $this->assertEquals($data['name'], $foundUser['name']);
-        $this->assertEquals($data['email'], $foundUser['email']);
+        $this->assertEquals($user->toArray(), $result);
     }
 
-
-    public function test_find_user_by_username(): void
+    /**
+     * Test finding a user by username.
+     *
+     * @return void
+     */
+    public function testFindUserByUsername(): void
     {
-        $data = [
-            'name' => 'John Doe',
-            'email' => 'laravel@email.com',
-            'password' => 'password'
-        ];
+        $user = User::factory()->make();
 
-        $this->userService->create($data);
+        $this->userRepository
+            ->shouldReceive('findByUsername')
+            ->once()
+            ->with($user->name)
+            ->andReturn($user);
 
-        $foundUser = $this->userService->findByUsername($data['name']);
+        $result = $this->userService->findByUsername($user->name);
 
-        $this->assertEquals($data['name'], $foundUser['name']);
-        $this->assertEquals($data['email'], $foundUser['email']);
+        $this->assertEquals($user->toArray(), $result);
     }
 
+    /**
+     * Tear down the test environment.
+     */
     protected function tearDown(): void
     {
+        Mockery::close();
         parent::tearDown();
-        $this->userRepository = null;
-        $this->userService = null;
     }
 }

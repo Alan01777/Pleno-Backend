@@ -6,7 +6,16 @@ use App\Models\Company;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Class UserTest
+ *
+ * This class contains unit tests for the User model.
+ * It tests the fillable attributes, hidden attributes, casts, and relationships of the User model.
+ *
+ * @package Tests\Unit\Models
+ */
 class UserTest extends TestCase
 {
     use RefreshDatabase;
@@ -14,6 +23,9 @@ class UserTest extends TestCase
     protected $user;
     protected $company;
 
+    /**
+     * Set up the test environment.
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -21,7 +33,12 @@ class UserTest extends TestCase
         $this->company = Company::factory()->create(['user_id' => $this->user->id]);
     }
 
-    public function test_it_has_fillable(): void
+    /**
+     * Test that the User model has the correct fillable attributes.
+     *
+     * @return void
+     */
+    public function testItHasFillableAttributes(): void
     {
         $user = new User();
 
@@ -32,7 +49,12 @@ class UserTest extends TestCase
         ], $user->getFillable());
     }
 
-    public function test_it_has_hidden(): void
+    /**
+     * Test that the User model has the correct hidden attributes.
+     *
+     * @return void
+     */
+    public function testItHasHiddenAttributes(): void
     {
         $user = new User();
 
@@ -42,7 +64,12 @@ class UserTest extends TestCase
         ], $user->getHidden());
     }
 
-    public function test_it_has_casts(): void
+    /**
+     * Test that the User model has the correct casts.
+     *
+     * @return void
+     */
+    public function testItHasCasts(): void
     {
         $user = new User();
 
@@ -53,12 +80,20 @@ class UserTest extends TestCase
         ], $user->getCasts());
     }
 
-    public function test_it_has_many_companies(): void
+    /**
+     * Test that the User model has many Companies.
+     *
+     * @return void
+     */
+    public function testItHasManyCompanies(): void
     {
-        $this->assertInstanceOf(Company::class, $this->user->companies->first());
-        $this->assertEquals($this->company->id, $this->user->companies->first()->id);
+        $this->assertInstanceOf(HasMany::class, $this->user->companies());
+        $this->assertTrue($this->user->companies->contains($this->company));
     }
 
+    /**
+     * Tear down the test environment.
+     */
     protected function tearDown(): void
     {
         $this->company->delete();

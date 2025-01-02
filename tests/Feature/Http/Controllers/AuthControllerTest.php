@@ -58,7 +58,7 @@ class AuthControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_login(): void
+    public function testLogin(): void
     {
         $data = $this->registerUser();
 
@@ -72,7 +72,7 @@ class AuthControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_login_with_invalid_credentials(): void
+    public function testLoginWithInvalidCredentials(): void
     {
         $data = $this->registerUser();
 
@@ -86,7 +86,7 @@ class AuthControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_logout(): void
+    public function testLogout(): void
     {
         $data = $this->registerUser();
 
@@ -108,7 +108,7 @@ class AuthControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_login_with_nonexistent_user(): void
+    public function testLoginWithNonexistentUser(): void
     {
         $this->loginUser('nonexistent@example.com', 'password')
             ->assertStatus(401)
@@ -120,10 +120,67 @@ class AuthControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_logout_without_token(): void
+    public function testLogoutWithoutToken(): void
     {
         $this->postJson('/api/logout')
             ->assertStatus(401)
             ->assertJson(['message' => 'Unauthenticated.']);
+    }
+
+    /**
+     * Test registration with valid data.
+     *
+     * @return void
+     */
+
+    public function testRegisterWithValidData(): void
+    {
+        $data = [
+            'name' => 'Jane Doe',
+            'email' => 'jane@example.com',
+            'password' => 'password',
+        ];
+
+        $response = $this->postJson('/api/register', $data);
+
+        $response->assertStatus(201)
+            ->assertJsonStructure([
+                'name',
+                'email',
+                'updated_at',
+                'created_at',
+                'id'
+            ]);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'jane@example.com',
+        ]);
+    }
+
+    /**
+     * Test registration with invalid data.
+     *
+     * @return void
+     */
+    public function testRegisterWithInvalidData(): void
+    {
+        $data = [
+            'name' => '',
+            'email' => 'invalid-email',
+            'password' => 'short',
+        ];
+
+        $response = $this->postJson('/api/register', $data);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name', 'email', 'password']);
+    }
+
+    /**
+     * Tear down the test environment.
+     */
+    protected function tearDown(): void
+    {
+        parent::tearDown();
     }
 }

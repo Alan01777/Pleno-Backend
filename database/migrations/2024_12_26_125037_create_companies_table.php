@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('trade_name')->nullable();
             $table->string('address');
             $table->string('phone');
-            $table->string('email')->unique();
+            $table->string('email');
             $table->enum('size', ['MEI', 'ME', 'EPP', 'EMP', 'EG']);
         });
     }

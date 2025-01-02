@@ -9,6 +9,14 @@ use App\Models\ServiceRequest;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
+/**
+ * Class CompanyTest
+ *
+ * This class contains unit tests for the Company model.
+ * It tests the fillable attributes and relationships of the Company model.
+ *
+ * @package Tests\Unit\Models
+ */
 class CompanyTest extends TestCase
 {
     use RefreshDatabase;
@@ -16,6 +24,9 @@ class CompanyTest extends TestCase
     protected $user;
     protected $company;
 
+    /**
+     * Set up the test environment.
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -23,7 +34,12 @@ class CompanyTest extends TestCase
         $this->company = Company::factory()->create(['user_id' => $this->user->id]);
     }
 
-    public function test_it_has_fillable_attributes()
+    /**
+     * Test that the Company model has the correct fillable attributes.
+     *
+     * @return void
+     */
+    public function testItHasFillableAttributes(): void
     {
         $company = new Company();
 
@@ -39,13 +55,23 @@ class CompanyTest extends TestCase
         ], $company->getFillable());
     }
 
-    public function test_it_belongs_to_a_user()
+    /**
+     * Test that the Company model belongs to a User.
+     *
+     * @return void
+     */
+    public function testItBelongsToAUser(): void
     {
         $this->assertInstanceOf(User::class, $this->company->user);
         $this->assertEquals($this->user->id, $this->company->user->id);
     }
 
-    public function test_it_has_many_files()
+    /**
+     * Test that the Company model has many Files.
+     *
+     * @return void
+     */
+    public function testItHasManyFiles(): void
     {
         $file = File::factory()->create(['company_id' => $this->company->id]);
 
@@ -53,7 +79,12 @@ class CompanyTest extends TestCase
         $this->assertEquals($file->id, $this->company->files->first()->id);
     }
 
-    public function test_it_has_many_service_requests()
+    /**
+     * Test that the Company model has many Service Requests.
+     *
+     * @return void
+     */
+    public function testItHasManyServiceRequests(): void
     {
         $serviceRequest = ServiceRequest::factory()->create(['company_id' => $this->company->id]);
 
@@ -61,6 +92,9 @@ class CompanyTest extends TestCase
         $this->assertEquals($serviceRequest->id, $this->company->serviceRequests->first()->id);
     }
 
+    /**
+     * Tear down the test environment.
+     */
     protected function tearDown(): void
     {
         $this->company->delete();

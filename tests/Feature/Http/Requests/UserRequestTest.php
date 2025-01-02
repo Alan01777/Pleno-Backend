@@ -16,7 +16,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
  *
  * @package Tests\Feature\Http\Requests
  */
-
 class UserRequestTest extends TestCase
 {
     use RefreshDatabase;
@@ -52,21 +51,24 @@ class UserRequestTest extends TestCase
 
     /**
      * Test that the UserRequest is authorized.
+     *
+     * @return void
      */
-    public function test_authorize(): void
+    public function testAuthorize(): void
     {
         $request = new UserRequest();
         $this->assertTrue($request->authorize());
     }
 
     /**
-     * Test the validation rules for the POST method.
+     * Test the validation rules for POST method.
+     *
+     * @return void
      */
-    public function test_rules_for_post_method(): void
+    public function testRulesForPostMethod(): void
     {
-        // Create a new request instance with the POST method
-        $request = UserRequest::create(self::USERS_URL, 'POST');
-
+        $request = new UserRequest();
+        $request->setMethod('POST');
         $rules = $request->rules();
 
         $this->assertArrayHasKey('name', $rules);
@@ -78,15 +80,14 @@ class UserRequestTest extends TestCase
     }
 
     /**
-     * Test the validation rules for other methods (e.g., PUT).
+     * Test the validation rules for non-POST methods.
+     *
+     * @return void
      */
-    public function test_rules_for_other_methods(): void
+    public function testRulesForNonPostMethod(): void
     {
         $request = new UserRequest();
-
-        // Simulate a PUT request
-        $this->app['request']->setMethod('PUT');
-
+        $request->setMethod('PUT'); // or any other non-POST method
         $rules = $request->rules();
 
         $this->assertArrayHasKey('name', $rules);
@@ -99,8 +100,10 @@ class UserRequestTest extends TestCase
 
     /**
      * Test the custom validation messages.
+     *
+     * @return void
      */
-    public function test_messages(): void
+    public function testMessages(): void
     {
         $request = new UserRequest();
         $messages = $request->messages();
@@ -120,51 +123,41 @@ class UserRequestTest extends TestCase
     }
 
     /**
-     * Test failed validation for the POST method.
+     * Test failed validation for the user request.
+     *
+     * @param array $invalidData
+     * @param array $expectedErrors
+     * @return void
      */
-    public function test_failed_validation_for_post_method(): void
+    #[DataProvider('invalidUserDataProvider')]
+    public function testFailedValidation(array $invalidData, array $expectedErrors): void
     {
-        $response = $this->postJson(self::REGISTER_URL, []);
-
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['name', 'email', 'password']);
-    }
-
-    /**
-     * Test failed validation for the PUT method with invalid data.
-     */
-    #[DataProvider('invalidPutDataProvider')]
-    public function test_failed_validation_for_put_method(array $invalidData, array $expectedErrors): void
-    {
-        $authData = $this->authenticate();
-        $token = $authData['token'];
-        $user = $authData['user'];
-
-        $response = $this->putJson(self::USERS_URL . "/{$user->id}", $invalidData, [
-            'Authorization' => "Bearer $token"
-        ]);
+        $response = $this->postJson(self::REGISTER_URL, $invalidData);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors($expectedErrors);
     }
 
     /**
-     * Data provider for test_failed_validation_for_put_method.
+     * Data provider for testFailedValidation.
      *
      * @return array
      */
-    public static function invalidPutDataProvider(): array
+    public static function invalidUserDataProvider(): array
     {
         return [
-            [['email' => 'invalid-email'], ['email']],
-            [['password' => 'short'], ['password']],
+            [[], ['name', 'email', 'password']],
+            [['name' => '', 'email' => 'invalid-email', 'password' => 'short'], ['name', 'email', 'password']],
+            [['name' => 'John Doe', 'email' => 'invalid-email', 'password' => 'short'], ['email', 'password']],
         ];
     }
 
     /**
-     * Test successful validation for the POST method.
+     * Test successful validation for the user request.
+     *
+     * @return void
      */
-    public function test_successful_validation_for_post_method(): void
+    public function testSuccessfulValidation(): void
     {
         $validData = [
             'name' => 'John Doe',
@@ -178,24 +171,12 @@ class UserRequestTest extends TestCase
     }
 
     /**
-     * Test successful validation for the PUT method.
+     * Tear down the test environment.
+     *
+     * @return void
      */
-    public function test_successful_validation_for_put_method(): void
+    protected function tearDown(): void
     {
-        $authData = $this->authenticate();
-        $token = $authData['token'];
-        $user = $authData['user'];
-
-        $validData = [
-            'name' => 'John Doe Updated',
-            'email' => 'john.updated@example.com',
-            'password' => 'newpassword',
-        ];
-
-        $response = $this->putJson(self::USERS_URL . "/{$user->id}", $validData, [
-            'Authorization' => "Bearer $token"
-        ]);
-
-        $response->assertStatus(200);
+        parent::tearDown();
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Controllers;
+namespace Tests\Feature\Http\Controllers;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -16,7 +16,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
  *
  * @package Tests\Feature\Controllers
  */
-
 class UserControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -24,6 +23,14 @@ class UserControllerTest extends TestCase
     private const REGISTER_URL = '/api/register';
     private const LOGIN_URL = '/api/login';
     private const USERS_URL = '/api/users';
+
+    /**
+     * Set up the test environment.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+    }
 
     /**
      * Authenticate a user and return the token and user.
@@ -57,12 +64,16 @@ class UserControllerTest extends TestCase
      * @return void
      */
     #[DataProvider('userDataProvider')]
-    public function test_store_user($data): void
+    public function testStoreUser(array $data): void
     {
         $response = $this->postJson(self::REGISTER_URL, $data);
 
         $response->assertStatus(201)
             ->assertJsonFragment(['name' => $data['name'] ?? '']);
+
+        $this->assertDatabaseHas('users', [
+            'email' => $data['email'],
+        ]);
     }
 
     /**
@@ -72,11 +83,23 @@ class UserControllerTest extends TestCase
      * @return void
      */
     #[DataProvider('invalidUserDataProvider')]
-    public function test_store_user_with_invalid_data($data): void
+    public function testStoreUserWithInvalidData(array $data): void
     {
         $response = $this->postJson(self::REGISTER_URL, $data);
 
         $response->assertStatus(422);
+
+        if (isset($data['name']) && empty($data['name'])) {
+            $response->assertJsonValidationErrors(['name']);
+        }
+
+        if (isset($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $response->assertJsonValidationErrors(['email']);
+        }
+
+        if (isset($data['password']) && strlen($data['password']) < 6) {
+            $response->assertJsonValidationErrors(['password']);
+        }
     }
 
     /**
@@ -84,7 +107,7 @@ class UserControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_show_user(): void
+    public function testShowUser(): void
     {
         $authData = $this->authenticate();
         $token = $authData['token'];
@@ -105,7 +128,7 @@ class UserControllerTest extends TestCase
      * @return void
      */
     #[DataProvider('userDataProvider')]
-    public function test_update_user($data): void
+    public function testUpdateUser(array $data): void
     {
         $authData = $this->authenticate();
         $token = $authData['token'];
@@ -117,6 +140,11 @@ class UserControllerTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonFragment(['name' => $data['name'] ?? '']);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'name' => $data['name'],
+        ]);
     }
 
     /**
@@ -124,7 +152,7 @@ class UserControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_delete_user(): void
+    public function testDeleteUser(): void
     {
         $authData = $this->authenticate();
         $token = $authData['token'];
@@ -144,7 +172,7 @@ class UserControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_find_user_by_username(): void
+    public function testFindUserByUsername(): void
     {
         $authData = $this->authenticate();
         $token = $authData['token'];
@@ -163,7 +191,7 @@ class UserControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_find_user_by_email(): void
+    public function testFindUserByEmail(): void
     {
         $authData = $this->authenticate();
         $token = $authData['token'];
@@ -202,5 +230,13 @@ class UserControllerTest extends TestCase
             [['name' => 'John Doe', 'email' => 'invalid-email', 'password' => 'password']],
             [['name' => 'John Doe', 'email' => 'john@example.com', 'password' => 'short']],
         ];
+    }
+
+    /**
+     * Tear down the test environment.
+     */
+    protected function tearDown(): void
+    {
+        parent::tearDown();
     }
 }

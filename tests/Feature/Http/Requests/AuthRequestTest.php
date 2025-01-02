@@ -24,8 +24,10 @@ class AuthRequestTest extends TestCase
 
     /**
      * Test that the AuthRequest is authorized.
+     *
+     * @return void
      */
-    public function test_authorize(): void
+    public function testAuthorize(): void
     {
         $request = new AuthRequest();
         $this->assertTrue($request->authorize());
@@ -33,8 +35,10 @@ class AuthRequestTest extends TestCase
 
     /**
      * Test the validation rules.
+     *
+     * @return void
      */
-    public function test_rules(): void
+    public function testRules(): void
     {
         $request = new AuthRequest();
         $rules = $request->rules();
@@ -47,8 +51,10 @@ class AuthRequestTest extends TestCase
 
     /**
      * Test the custom validation messages.
+     *
+     * @return void
      */
-    public function test_messages(): void
+    public function testMessages(): void
     {
         $request = new AuthRequest();
         $messages = $request->messages();
@@ -65,9 +71,13 @@ class AuthRequestTest extends TestCase
 
     /**
      * Test failed validation for the login request.
+     *
+     * @param array $invalidData
+     * @param array $expectedErrors
+     * @return void
      */
     #[DataProvider('invalidLoginDataProvider')]
-    public function test_failed_validation(array $invalidData, array $expectedErrors): void
+    public function testFailedValidation(array $invalidData, array $expectedErrors): void
     {
         $response = $this->postJson(self::LOGIN_URL, $invalidData);
 
@@ -76,7 +86,7 @@ class AuthRequestTest extends TestCase
     }
 
     /**
-     * Data provider for test_failed_validation.
+     * Data provider for testFailedValidation.
      *
      * @return array
      */
@@ -92,8 +102,10 @@ class AuthRequestTest extends TestCase
 
     /**
      * Test successful validation for the login request.
+     *
+     * @return void
      */
-    public function test_successful_validation(): void
+    public function testSuccessfulValidation(): void
     {
         User::factory()->create([
             'email' => 'john@example.com',
@@ -108,5 +120,15 @@ class AuthRequestTest extends TestCase
         $response = $this->postJson(self::LOGIN_URL, $validData);
 
         $response->assertStatus(200);
+    }
+
+    /**
+     * Tear down the test environment.
+     *
+     * @return void
+     */
+    protected function tearDown(): void
+    {
+        parent::tearDown();
     }
 }

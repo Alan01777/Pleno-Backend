@@ -4,18 +4,30 @@ namespace Tests\Unit\Models;
 
 use App\Models\Company;
 use App\Models\ServiceRequest;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Class ServiceRequestTest
+ *
+ * This class contains unit tests for the ServiceRequest model.
+ * It tests the fillable attributes and relationships of the ServiceRequest model.
+ *
+ * @package Tests\Unit\Models
+ */
 class ServiceRequestTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $user;
     protected $company;
     protected $serviceRequest;
-    protected $user;
 
+    /**
+     * Set up the test environment.
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -24,7 +36,12 @@ class ServiceRequestTest extends TestCase
         $this->serviceRequest = ServiceRequest::factory()->create(['company_id' => $this->company->id]);
     }
 
-    public function test_it_has_fillable_attributes()
+    /**
+     * Test that the ServiceRequest model has the correct fillable attributes.
+     *
+     * @return void
+     */
+    public function testItHasFillableAttributes(): void
     {
         $serviceRequest = new ServiceRequest();
 
@@ -36,13 +53,20 @@ class ServiceRequestTest extends TestCase
         ], $serviceRequest->getFillable());
     }
 
-    public function test_it_belongs_to_a_company()
+    /**
+     * Test that the ServiceRequest model belongs to a Company.
+     *
+     * @return void
+     */
+    public function testItBelongsToACompany(): void
     {
-
-        $this->assertInstanceOf(Company::class, $this->serviceRequest->company);
-        $this->assertEquals($this->company->id, $this->serviceRequest->company->id);
+        $this->assertInstanceOf(BelongsTo::class, $this->serviceRequest->company());
+        $this->assertTrue($this->serviceRequest->company->is($this->company));
     }
 
+    /**
+     * Tear down the test environment.
+     */
     protected function tearDown(): void
     {
         $this->serviceRequest->delete();

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\Repositories;
 
 use Tests\TestCase;
 use App\Models\User;
@@ -8,6 +8,14 @@ use App\Models\Company;
 use App\Repositories\CompanyRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
+/**
+ * Class CompanyRepositoryTest
+ *
+ * This class contains unit tests for the CompanyRepository.
+ * It tests the CRUD functionalities and various query methods of the CompanyRepository.
+ *
+ * @package Tests\Unit
+ */
 class CompanyRepositoryTest extends TestCase
 {
     use RefreshDatabase;
@@ -15,6 +23,9 @@ class CompanyRepositoryTest extends TestCase
     protected $companyRepository;
     protected $user;
 
+    /**
+     * Set up the test environment.
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -22,7 +33,12 @@ class CompanyRepositoryTest extends TestCase
         $this->user = User::factory()->create();
     }
 
-    public function testCreateCompany()
+    /**
+     * Test creating a company.
+     *
+     * @return void
+     */
+    public function testCreateCompany(): void
     {
         $data = [
             'email' => 'test@example.com',
@@ -31,7 +47,7 @@ class CompanyRepositoryTest extends TestCase
             'trade_name' => 'Test Trade Name',
             'legal_name' => 'Test Legal Name',
             'phone' => '1234567890',
-            'size' => 'MEI', // Ensure this value is valid
+            'size' => 'MEI',
             'user_id' => $this->user->id
         ];
 
@@ -47,7 +63,12 @@ class CompanyRepositoryTest extends TestCase
         $this->assertEquals($this->user->id, $company->user_id);
     }
 
-    public function testFindCompanyById()
+    /**
+     * Test finding a company by ID.
+     *
+     * @return void
+     */
+    public function testFindCompanyById(): void
     {
         $company = Company::factory()->create(['user_id' => $this->user->id]);
 
@@ -57,14 +78,24 @@ class CompanyRepositoryTest extends TestCase
         $this->assertEquals($company->id, $foundCompany->id);
     }
 
-    public function testFindCompanyByIdNotFound()
+    /**
+     * Test finding a company by ID that does not exist.
+     *
+     * @return void
+     */
+    public function testFindCompanyByIdNotFound(): void
     {
         $foundCompany = $this->companyRepository->findById(999);
 
         $this->assertNull($foundCompany);
     }
 
-    public function testUpdateCompany()
+    /**
+     * Test updating a company.
+     *
+     * @return void
+     */
+    public function testUpdateCompany(): void
     {
         $company = Company::factory()->create(['user_id' => $this->user->id]);
 
@@ -75,7 +106,12 @@ class CompanyRepositoryTest extends TestCase
         $this->assertEquals('Updated Legal Name', $company->fresh()->legal_name);
     }
 
-    public function testUpdateCompanyNotFound()
+    /**
+     * Test updating a company that does not exist.
+     *
+     * @return void
+     */
+    public function testUpdateCompanyNotFound(): void
     {
         $data = ['legal_name' => 'Updated Legal Name'];
         $updated = $this->companyRepository->update(999, $data);
@@ -83,7 +119,12 @@ class CompanyRepositoryTest extends TestCase
         $this->assertFalse($updated);
     }
 
-    public function testDeleteCompany()
+    /**
+     * Test deleting a company.
+     *
+     * @return void
+     */
+    public function testDeleteCompany(): void
     {
         $company = Company::factory()->create(['user_id' => $this->user->id]);
 
@@ -93,14 +134,24 @@ class CompanyRepositoryTest extends TestCase
         $this->assertNull(Company::find($company->id));
     }
 
-    public function testDeleteCompanyNotFound()
+    /**
+     * Test deleting a company that does not exist.
+     *
+     * @return void
+     */
+    public function testDeleteCompanyNotFound(): void
     {
         $deleted = $this->companyRepository->delete(999);
 
         $this->assertFalse($deleted);
     }
 
-    public function testFindCompanyByEmail()
+    /**
+     * Test finding a company by email.
+     *
+     * @return void
+     */
+    public function testFindCompanyByEmail(): void
     {
         $company = Company::factory()->create(['email' => 'test@example.com', 'user_id' => $this->user->id]);
 
@@ -110,14 +161,24 @@ class CompanyRepositoryTest extends TestCase
         $this->assertEquals('test@example.com', $foundCompany->email);
     }
 
-    public function testFindCompanyByEmailNotFound()
+    /**
+     * Test finding a company by email that does not exist.
+     *
+     * @return void
+     */
+    public function testFindCompanyByEmailNotFound(): void
     {
         $foundCompany = $this->companyRepository->findByEmail('nonexistent@example.com');
 
         $this->assertNull($foundCompany);
     }
 
-    public function testFindCompanyByCnpj()
+    /**
+     * Test finding a company by CNPJ.
+     *
+     * @return void
+     */
+    public function testFindCompanyByCnpj(): void
     {
         $company = Company::factory()->create(['cnpj' => '12345678901234', 'user_id' => $this->user->id]);
 
@@ -127,14 +188,24 @@ class CompanyRepositoryTest extends TestCase
         $this->assertEquals('12345678901234', $foundCompany->cnpj);
     }
 
-    public function testFindCompanyByCnpjNotFound()
+    /**
+     * Test finding a company by CNPJ that does not exist.
+     *
+     * @return void
+     */
+    public function testFindCompanyByCnpjNotFound(): void
     {
         $foundCompany = $this->companyRepository->findByCnpj('00000000000000');
 
         $this->assertNull($foundCompany);
     }
 
-    public function testFindCompanyByTradeName()
+    /**
+     * Test finding a company by trade name.
+     *
+     * @return void
+     */
+    public function testFindCompanyByTradeName(): void
     {
         $company = Company::factory()->create(['trade_name' => 'Test Trade Name', 'user_id' => $this->user->id]);
 
@@ -144,14 +215,24 @@ class CompanyRepositoryTest extends TestCase
         $this->assertEquals('Test Trade Name', $foundCompany->trade_name);
     }
 
-    public function testFindCompanyByTradeNameNotFound()
+    /**
+     * Test finding a company by trade name that does not exist.
+     *
+     * @return void
+     */
+    public function testFindCompanyByTradeNameNotFound(): void
     {
         $foundCompany = $this->companyRepository->findByTradeName('Nonexistent Trade Name');
 
         $this->assertNull($foundCompany);
     }
 
-    public function testFindCompanyByLegalName()
+    /**
+     * Test finding a company by legal name.
+     *
+     * @return void
+     */
+    public function testFindCompanyByLegalName(): void
     {
         $company = Company::factory()->create(['legal_name' => 'Test Legal Name', 'user_id' => $this->user->id]);
 
@@ -161,14 +242,24 @@ class CompanyRepositoryTest extends TestCase
         $this->assertEquals('Test Legal Name', $foundCompany->legal_name);
     }
 
-    public function testFindCompanyByLegalNameNotFound()
+    /**
+     * Test finding a company by legal name that does not exist.
+     *
+     * @return void
+     */
+    public function testFindCompanyByLegalNameNotFound(): void
     {
         $foundCompany = $this->companyRepository->findByLegalName('Nonexistent Legal Name');
 
         $this->assertNull($foundCompany);
     }
 
-    public function testFindCompanyByPhone()
+    /**
+     * Test finding a company by phone.
+     *
+     * @return void
+     */
+    public function testFindCompanyByPhone(): void
     {
         $company = Company::factory()->create(['phone' => '1234567890', 'user_id' => $this->user->id]);
 
@@ -178,14 +269,24 @@ class CompanyRepositoryTest extends TestCase
         $this->assertEquals('1234567890', $foundCompany->phone);
     }
 
-    public function testFindCompanyByPhoneNotFound()
+    /**
+     * Test finding a company by phone that does not exist.
+     *
+     * @return void
+     */
+    public function testFindCompanyByPhoneNotFound(): void
     {
         $foundCompany = $this->companyRepository->findByPhone('0000000000');
 
         $this->assertNull($foundCompany);
     }
 
-    public function testFindAllCompanies()
+    /**
+     * Test finding all companies.
+     *
+     * @return void
+     */
+    public function testFindAllCompanies(): void
     {
         Company::factory()->count(3)->create(['user_id' => $this->user->id]);
 
@@ -194,14 +295,24 @@ class CompanyRepositoryTest extends TestCase
         $this->assertCount(3, $companies);
     }
 
-    public function testFindAllCompaniesEmpty()
+    /**
+     * Test finding all companies when there are none.
+     *
+     * @return void
+     */
+    public function testFindAllCompaniesEmpty(): void
     {
         $companies = $this->companyRepository->findAll();
 
         $this->assertCount(0, $companies);
     }
 
-    public function testFindCompaniesBySize()
+    /**
+     * Test finding companies by size.
+     *
+     * @return void
+     */
+    public function testFindCompaniesBySize(): void
     {
         Company::factory()->count(2)->create(['size' => 'MEI', 'user_id' => $this->user->id]);
         Company::factory()->count(3)->create(['size' => 'EG', 'user_id' => $this->user->id]);
@@ -213,7 +324,12 @@ class CompanyRepositoryTest extends TestCase
         $this->assertCount(3, $egCompanies);
     }
 
-    public function testFindCompaniesBySizeNotFound()
+    /**
+     * Test finding companies by size that does not exist.
+     *
+     * @return void
+     */
+    public function testFindCompaniesBySizeNotFound(): void
     {
         $companies = $this->companyRepository->findBySize('nonexistent');
 

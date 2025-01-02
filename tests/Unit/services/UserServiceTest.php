@@ -8,7 +8,6 @@ use App\Services\UserService;
 use App\Contracts\Repositories\UserRepositoryInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
-use Mockery\MockInterface;
 
 /**
  * Class UserServiceTest

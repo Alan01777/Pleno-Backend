@@ -7,19 +7,35 @@ use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
+/**
+ * Class UserRepositoryTest
+ *
+ * This class contains unit tests for the UserRepository.
+ * It tests the CRUD functionalities and various query methods of the UserRepository.
+ *
+ * @package Tests\Unit\Repositories
+ */
 class UserRepositoryTest extends TestCase
 {
     use RefreshDatabase;
 
     protected $userRepository;
 
+    /**
+     * Set up the test environment.
+     */
     protected function setUp(): void
     {
         parent::setUp();
         $this->userRepository = new UserRepository();
     }
 
-    public function test_create_user(): void
+    /**
+     * Test creating a user.
+     *
+     * @return void
+     */
+    public function testCreateUser(): void
     {
         $data = [
             'name' => 'John Doe',
@@ -33,7 +49,12 @@ class UserRepositoryTest extends TestCase
         $this->assertEquals('John Doe', $user->name);
     }
 
-    public function test_find_user_by_id(): void
+    /**
+     * Test finding a user by ID.
+     *
+     * @return void
+     */
+    public function testFindUserById(): void
     {
         $data = [
             'name' => 'John Doe',
@@ -49,7 +70,12 @@ class UserRepositoryTest extends TestCase
         $this->assertEquals('John Doe', $foundUser->name);
     }
 
-    public function test_find_all_users(): void
+    /**
+     * Test finding all users.
+     *
+     * @return void
+     */
+    public function testFindAllUsers(): void
     {
         User::factory()->count(5)->create();
 
@@ -58,14 +84,24 @@ class UserRepositoryTest extends TestCase
         $this->assertCount(5, $users);
     }
 
-    public function test_find_user_with_invalid_id(): void
+    /**
+     * Test finding a user with an invalid ID.
+     *
+     * @return void
+     */
+    public function testFindUserWithInvalidId(): void
     {
         $result = $this->userRepository->findById(0);
 
         $this->assertNull($result);
     }
 
-    public function test_update_user(): void
+    /**
+     * Test updating a user.
+     *
+     * @return void
+     */
+    public function testUpdateUser(): void
     {
         $data = [
             'name' => 'John Doe',
@@ -87,7 +123,12 @@ class UserRepositoryTest extends TestCase
         $this->assertEquals('Jane Doe', $updatedUser->name);
     }
 
-    public function test_update_user_with_invalid_id(): void
+    /**
+     * Test updating a user with an invalid ID.
+     *
+     * @return void
+     */
+    public function testUpdateUserWithInvalidId(): void
     {
         $data = [
             'name' => 'John Doe',
@@ -107,7 +148,12 @@ class UserRepositoryTest extends TestCase
         $this->assertFalse($result);
     }
 
-    public function test_delete_user(): void
+    /**
+     * Test deleting a user.
+     *
+     * @return void
+     */
+    public function testDeleteUser(): void
     {
         $data = [
             'name' => 'John Doe',
@@ -124,7 +170,12 @@ class UserRepositoryTest extends TestCase
         $this->assertNull($deletedUser);
     }
 
-    public function test_delete_user_with_invalid_id(): void
+    /**
+     * Test deleting a user with an invalid ID.
+     *
+     * @return void
+     */
+    public function testDeleteUserWithInvalidId(): void
     {
         $data = [
             'name' => 'John Doe',
@@ -139,7 +190,12 @@ class UserRepositoryTest extends TestCase
         $this->assertFalse($result);
     }
 
-    public function test_find_user_by_username(): void
+    /**
+     * Test finding a user by username.
+     *
+     * @return void
+     */
+    public function testFindUserByUsername(): void
     {
         $data = [
             'name' => 'John Doe',
@@ -155,7 +211,12 @@ class UserRepositoryTest extends TestCase
         $this->assertEquals('John Doe', $foundUser->name);
     }
 
-    public function test_find_user_by_email(): void
+    /**
+     * Test finding a user by email.
+     *
+     * @return void
+     */
+    public function testFindUserByEmail(): void
     {
         $data = [
             'name' => 'John Doe',
@@ -171,6 +232,9 @@ class UserRepositoryTest extends TestCase
         $this->assertEquals('john@example.com', $foundUser->email);
     }
 
+    /**
+     * Tear down the test environment.
+     */
     protected function tearDown(): void
     {
         parent::tearDown();

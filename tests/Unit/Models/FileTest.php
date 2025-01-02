@@ -1,23 +1,33 @@
 <?php
+
 namespace Tests\Unit\Models;
 
 use App\Models\File;
 use App\Models\Company;
+use App\Models\User;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
 
-
+/**
+ * Class FileTest
+ *
+ * This class contains unit tests for the File model.
+ * It tests the fillable attributes and relationships of the File model.
+ *
+ * @package Tests\Unit\Models
+ */
 class FileTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $user;
     protected $company;
     protected $file;
-    protected $user;
 
-
+    /**
+     * Set up the test environment.
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -26,7 +36,12 @@ class FileTest extends TestCase
         $this->file = File::factory()->create(['company_id' => $this->company->id]);
     }
 
-    public function test_it_has_fillable_attributes()
+    /**
+     * Test that the File model has the correct fillable attributes.
+     *
+     * @return void
+     */
+    public function testItHasFillableAttributes(): void
     {
         $file = new File();
 
@@ -40,13 +55,20 @@ class FileTest extends TestCase
         ], $file->getFillable());
     }
 
-    public function test_it_belongs_to_a_company()
+    /**
+     * Test that the File model belongs to a Company.
+     *
+     * @return void
+     */
+    public function testItBelongsToACompany(): void
     {
-
         $this->assertInstanceOf(BelongsTo::class, $this->file->company());
         $this->assertTrue($this->file->company->is($this->company));
     }
 
+    /**
+     * Tear down the test environment.
+     */
     protected function tearDown(): void
     {
         $this->file->delete();

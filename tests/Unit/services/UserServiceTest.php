@@ -82,6 +82,21 @@ class UserServiceTest extends TestCase
         $this->assertEquals($user->toArray(), $result);
     }
 
+    public function testFindAllUsers(): void
+    {
+        $users = User::factory()->count(5)->make()->toArray();
+
+        $this->userRepository->
+            shouldReceive('findAll')->
+            once()->
+            andReturn($users);
+
+        $result = $this->userService->findAll();
+
+        $this->assertEquals($users, $result);
+        $this->assertCount(5, $result);
+    }
+
     /**
      * Test updating a user.
      *

@@ -35,6 +35,7 @@ class CompanyTest extends TestCase
             'phone',
             'email',
             'size',
+            'user_id'
         ], $company->getFillable());
     }
 

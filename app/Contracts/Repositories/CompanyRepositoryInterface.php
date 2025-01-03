@@ -100,4 +100,6 @@ interface CompanyRepositoryInterface
      * @return array The array of company instances.
      */
     public function findBySize(string $size): array;
+
+    public function findAllByUserId(int $id): array;
 }

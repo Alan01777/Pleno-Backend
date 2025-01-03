@@ -15,11 +15,12 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->string('name');
+            $table->string('hash_name');
             $table->string('path');
-            $table->string('extension');
             $table->string('mime_type');
             $table->unsignedBigInteger('size');
             $table->foreignId('company_id')->constrained('companies')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
         });
     }
 

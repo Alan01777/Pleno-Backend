@@ -10,8 +10,13 @@ use App\Services\UserService;
 use App\Contracts\Services\AuthServiceInterface;
 use App\Contracts\Services\CompanyServiceInterface;
 use App\Contracts\Repositories\CompanyRepositoryInterface;
+use App\Contracts\Services\FileServiceInterface;
+use App\Services\FileService;
+use App\Repositories\FileRepository;
+use App\Contracts\Repositories\FileRepositoryInterface;
 use App\Repositories\CompanyRepository;
 use App\Services\AuthService;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +40,12 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(CompanyRepositoryInterface::class, CompanyRepository::class);
+
+        $this->app->bind(FileServiceInterface::class, function ($app) {
+            return new FileService($app->make(FileRepositoryInterface::class), $app->make(CompanyServiceInterface::class));
+        });
+
+        $this->app->bind(FileRepositoryInterface::class, FileRepository::class);
     }
 
     /**

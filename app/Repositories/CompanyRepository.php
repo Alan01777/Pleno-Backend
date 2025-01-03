@@ -133,4 +133,10 @@ class CompanyRepository implements CompanyRepositoryInterface
     {
         return Company::where('size', $size)->get()->toArray();
     }
+
+    public function findAllByUserId(int $id): array
+    {
+        // return all companies that have the user ID
+        return Company::where('user_id', $id)->get()->toArray();
+    }
 }

@@ -105,4 +105,6 @@ interface CompanyServiceInterface
 
     public function findBySize(string $size): array | null;
 
+    public function findAllByUserId(): array;
+
 }

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Contracts\Repositories\CompanyRepositoryInterface;
 use App\Contracts\Services\CompanyServiceInterface;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Class CompanyService
@@ -143,5 +144,11 @@ class CompanyService implements CompanyServiceInterface
     {
         $company = $this->companyRepository->findBySize($size);
         return $company ? $company : null;
+    }
+
+    public function findAllByUserId(): array
+    {
+        $id = Auth::id();
+        return $this->companyRepository->findAllByUserId($id);
     }
 }

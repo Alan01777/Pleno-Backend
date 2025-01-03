@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\FileController;
 
 // Health check
 Route::get('/healthcheck', function () {
@@ -37,5 +38,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [CompanyController::class, 'show']); // Read company by ID
         Route::put('/{id}', [CompanyController::class, 'update']); // Update company
         Route::delete('/{id}', [CompanyController::class, 'destroy']); // Delete company
+    });
+});
+
+
+// File Routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('file')->group(function () {
+        Route::get('/', [FileController::class, 'index']);
+        Route::post('/', [FileController::class, 'store']);
+        Route::get('/{id}', [FileController::class, 'show']);
+        Route::put('/{id}', [FileController::class, 'update']);
+        Route::delete('/{id}', [FileController::class, 'destroy']);
     });
 });

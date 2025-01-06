@@ -48,7 +48,7 @@ class FileService implements FileServiceInterface
     {
         try {
             $hashName = Str::random(40) . '.' . $file->getClientOriginalExtension();
-            $path = Storage::disk('s3')->putFileAs('files', $file, $hashName);
+            $path = Storage::putFileAs('files', $file, $hashName);
             $data = $this->extractFileMetadata($file, $hashName, $path, $companyId);
             return $this->fileRepository->create($data);
         } catch (Exception $e) {
@@ -73,9 +73,9 @@ class FileService implements FileServiceInterface
             if (!$existingFile) {
                 throw new NotFoundHttpException('File not found.');
             }
-            Storage::disk('s3')->delete($existingFile->path);
+            Storage::delete($existingFile->path);
             $hashName = Str::random(40) . '.' . $file->getClientOriginalExtension();
-            $path = Storage::disk('s3')->putFileAs('files', $file, $hashName);
+            $path = Storage::putFileAs('files', $file, $hashName);
             $data = $this->extractFileMetadata($file, $hashName, $path, $companyId);
             return $this->fileRepository->update($id, $data);
         } catch (Exception $e) {
@@ -108,7 +108,7 @@ class FileService implements FileServiceInterface
                     'user_id' => $file['user_id'],
                     'created_at' => $file['created_at'],
                     'updated_at' => $file['updated_at'],
-                    'url' => Storage::disk('s3')->url($file['path'])
+                    'url' => Storage::url($file['path'])
                 ];
             }, $files);
         } catch (Exception $e) {
@@ -141,7 +141,7 @@ class FileService implements FileServiceInterface
             'user_id' => $file['user_id'],
             'created_at' => $file['created_at'],
             'updated_at' => $file['updated_at'],
-            'url' => Storage::disk('s3')->url($file['path'])
+            'url' => Storage::url($file['path'])
         ];
     }
 
@@ -159,7 +159,7 @@ class FileService implements FileServiceInterface
             if (!$file) {
                 throw new NotFoundHttpException('File not found.');
             }
-            Storage::disk('s3')->delete($file->path);
+            Storage::delete($file->path);
             return $this->fileRepository->delete($id);
         } catch (NotFoundHttpException $e) {
             throw $e;

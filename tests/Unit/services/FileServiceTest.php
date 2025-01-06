@@ -34,7 +34,6 @@ class FileServiceTest extends TestCase
 
     public function testCreateFile()
     {
-        Storage::fake('s3');
         $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
         $companyId = 1;
 
@@ -48,7 +47,6 @@ class FileServiceTest extends TestCase
 
     public function testUpdateFile()
     {
-        Storage::fake('s3');
         $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
         $companyId = 1;
         $fileId = 1;
@@ -105,7 +103,6 @@ class FileServiceTest extends TestCase
 
     public function testDeleteFile()
     {
-        Storage::fake('s3');
         $fileId = 1;
         $file = new \App\Models\File(['path' => 'files/document.pdf']);
 

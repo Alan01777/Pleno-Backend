@@ -24,8 +24,8 @@ class FileFactory extends Factory
             'path' => $this->faker->word,
             'mime_type' => $this->faker->mimeType,
             'size' => $this->faker->randomNumber(),
-            'company_id' => Company::factory(),
             'user_id' => User::factory(),
+            'company_id' => Company::factory(),
         ];
     }
 }

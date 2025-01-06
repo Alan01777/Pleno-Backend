@@ -6,14 +6,6 @@ jobs:
   laravel-tests:
     runs-on: ubuntu-latest
 
-    services:
-      minio:
-        image: minio/minio
-        ports:
-          - 9000:9000
-        options: --name minio -e "MINIO_ACCESS_KEY=minioadmin" -e "MINIO_SECRET_KEY=minioadmin" -v /mnt/data:/data
-
-
     steps:
       - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
         with:
@@ -40,30 +32,21 @@ jobs:
           mkdir -p database
           touch database/database.sqlite
 
-      - name: Set MinIO Environment Variables
-        run: |
-          echo "FILESYSTEM_DISK=s3" >> .env
-          echo "AWS_ACCESS_KEY_ID=minioadmin" >> .env
-          echo "AWS_SECRET_ACCESS_KEY=minioadmin" >> .env
-          echo "AWS_DEFAULT_REGION=us-east-1" >> .env
-          echo "AWS_BUCKET=test-bucket" >> .env
-          echo "AWS_ENDPOINT=http://localhost:9000" >> .env
-
-      - name: Create S3 Bucket
-        run: |
-          docker run --network host --rm minio/mc alias set myminio http://localhost:9000 minioadmin minioadmin
-          docker run --network host --rm minio/mc mb myminio/test-bucket
+      - name: Set Local Storage Environment Variables
+        run: echo "FILESYSTEM_DISK=local" >> .env
 
       - name: Execute tests (Unit and Feature tests) via PHPUnit
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
+          FILESYSTEM_DISK: local
         run: vendor/bin/phpunit
 
       - name: Run Coverage Report
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
+          FILESYSTEM_DISK: local
         run: vendor/bin/phpunit --coverage-clover=coverage.xml
 
       - name: SonarQube Scan

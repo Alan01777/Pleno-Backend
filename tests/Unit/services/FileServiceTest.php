@@ -42,7 +42,7 @@ class FileServiceTest extends TestCase
         $result = $this->fileService->create($file, $companyId);
 
         $this->assertInstanceOf(\App\Models\File::class, $result);
-        Storage::disk('s3')->assertExists('files/' . $result->hash_name);
+        Storage::assertExists('files/' . $result->hash_name);
     }
 
     public function testUpdateFile()
@@ -56,19 +56,19 @@ class FileServiceTest extends TestCase
         $this->fileRepository->shouldReceive('update')->once()->andReturn(true);
 
         // Ensure the old file exists in the fake storage
-        Storage::disk('s3')->put('files/old_document.pdf', 'old content');
+        Storage::put('files/old_document.pdf', 'old content');
 
         // Generate the new file path
         $newFilePath = 'files/' . $file->hashName();
 
         // Store the new file in the fake storage
-        Storage::disk('s3')->put($newFilePath, 'new content');
+        Storage::put($newFilePath, 'new content');
 
         $result = $this->fileService->update($fileId, $file, $companyId);
 
         $this->assertTrue($result);
-        Storage::disk('s3')->assertMissing('files/old_document.pdf');
-        Storage::disk('s3')->assertExists($newFilePath);
+        Storage::assertMissing('files/old_document.pdf');
+        Storage::assertExists($newFilePath);
     }
 
     public function testFindAllByUserId()
@@ -110,12 +110,12 @@ class FileServiceTest extends TestCase
         $this->fileRepository->shouldReceive('delete')->once()->andReturn(true);
 
         // Ensure the file exists in the fake storage
-        Storage::disk('s3')->put('files/document.pdf', 'content');
+        Storage::put('files/document.pdf', 'content');
 
         $result = $this->fileService->delete($fileId);
 
         $this->assertTrue($result);
-        Storage::disk('s3')->assertMissing('files/document.pdf');
+        Storage::assertMissing('files/document.pdf');
     }
 
     protected function tearDown(): void

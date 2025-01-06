@@ -118,6 +118,69 @@ class FileServiceTest extends TestCase
         Storage::assertMissing('files/document.pdf');
     }
 
+    public function testHandleExceptionInCreate()
+    {
+        $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
+        $companyId = 1;
+
+        $this->fileRepository->shouldReceive('create')->once()->andThrow(new Exception('Test exception'));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('File creation failed.');
+
+        $this->fileService->create($file, $companyId);
+    }
+
+    public function testHandleExceptionInUpdate()
+    {
+        $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
+        $companyId = 1;
+        $fileId = 1;
+
+        $existingFile = new \App\Models\File(['path' => 'files/old_document.pdf']);
+        $this->fileRepository->shouldReceive('findById')->once()->with($fileId)->andReturn($existingFile);
+        $this->fileRepository->shouldReceive('update')->once()->andThrow(new Exception('Test exception'));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('File update failed.');
+
+        $this->fileService->update($fileId, $file, $companyId);
+    }
+
+    public function testHandleExceptionInFindAllByUserId()
+    {
+        $this->companyService->shouldReceive('findAllByUserId')->once()->andThrow(new Exception('Test exception'));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Failed to retrieve files.');
+
+        $this->fileService->findAllByUserId();
+    }
+
+    public function testHandleExceptionInFindById()
+    {
+        $fileId = 1;
+
+        $this->fileRepository->shouldReceive('findById')->once()->with($fileId)->andThrow(new NotFoundHttpException('File not found.'));
+
+        $this->expectException(NotFoundHttpException::class);
+        $this->expectExceptionMessage('File not found.');
+
+        $this->fileService->findById($fileId);
+    }
+
+    public function testHandleExceptionInDelete()
+    {
+        $fileId = 1;
+
+        $this->fileRepository->shouldReceive('findById')->once()->with($fileId)->andThrow(new Exception('Test exception'));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('File deletion failed.');
+
+        $this->fileService->delete($fileId);
+    }
+
     protected function tearDown(): void
     {
         Mockery::close();

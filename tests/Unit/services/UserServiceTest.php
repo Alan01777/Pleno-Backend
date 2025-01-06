@@ -8,6 +8,7 @@ use App\Services\UserService;
 use App\Contracts\Repositories\UserRepositoryInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use Exception;
 
 /**
  * Class UserServiceTest
@@ -86,10 +87,10 @@ class UserServiceTest extends TestCase
     {
         $users = User::factory()->count(5)->make()->toArray();
 
-        $this->userRepository->
-            shouldReceive('findAll')->
-            once()->
-            andReturn($users);
+        $this->userRepository
+            ->shouldReceive('findAll')
+            ->once()
+            ->andReturn($users);
 
         $result = $this->userService->findAll();
 
@@ -185,6 +186,128 @@ class UserServiceTest extends TestCase
         $result = $this->userService->findByUsername($user->name);
 
         $this->assertEquals($user->toArray(), $result);
+    }
+
+    /**
+     * Test handling an exception in the UserService.
+     *
+     * @return void
+     */
+    public function testHandleExceptionInCreate(): void
+    {
+        $data = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'password' => 'password'
+        ];
+
+        $this->userRepository
+            ->shouldReceive('create')
+            ->once()
+            ->with($data)
+            ->andThrow(new Exception('Test exception'));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Failed to create user.');
+
+        $this->userService->create($data);
+    }
+
+    public function testHandleExceptionInFindById(): void
+    {
+        $userId = 1;
+
+        $this->userRepository
+            ->shouldReceive('findById')
+            ->once()
+            ->with($userId)
+            ->andThrow(new Exception('Test exception'));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Failed to find user.');
+
+        $this->userService->findById($userId);
+    }
+
+    public function testHandleExceptionInFindAll(): void
+    {
+        $this->userRepository
+            ->shouldReceive('findAll')
+            ->once()
+            ->andThrow(new Exception('Test exception'));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Failed to retrieve users.');
+
+        $this->userService->findAll();
+    }
+
+    public function testHandleExceptionInUpdate(): void
+    {
+        $userId = 1;
+        $updateData = [
+            'name' => 'Jane Doe',
+            'email' => 'jane@example.com',
+        ];
+
+        $this->userRepository
+            ->shouldReceive('update')
+            ->once()
+            ->with($userId, $updateData)
+            ->andThrow(new Exception('Test exception'));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Failed to update user.');
+
+        $this->userService->update($userId, $updateData);
+    }
+
+    public function testHandleExceptionInDelete(): void
+    {
+        $userId = 1;
+
+        $this->userRepository
+            ->shouldReceive('delete')
+            ->once()
+            ->with($userId)
+            ->andThrow(new Exception('Test exception'));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Failed to delete user.');
+
+        $this->userService->delete($userId);
+    }
+
+    public function testHandleExceptionInFindByEmail(): void
+    {
+        $email = 'john@example.com';
+
+        $this->userRepository
+            ->shouldReceive('findByEmail')
+            ->once()
+            ->with($email)
+            ->andThrow(new Exception('Test exception'));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Failed to find user by email.');
+
+        $this->userService->findByEmail($email);
+    }
+
+    public function testHandleExceptionInFindByUsername(): void
+    {
+        $username = 'JohnDoe';
+
+        $this->userRepository
+            ->shouldReceive('findByUsername')
+            ->once()
+            ->with($username)
+            ->andThrow(new Exception('Test exception'));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Failed to find user by username.');
+
+        $this->userService->findByUsername($username);
     }
 
     /**

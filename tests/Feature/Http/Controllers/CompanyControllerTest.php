@@ -6,9 +6,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Company;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Testing\Fluent\AssertableJson;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Exception;
+use App\Contracts\Services\CompanyServiceInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
@@ -104,13 +106,7 @@ class CompanyControllerTest extends TestCase
         // Add user_id to company data
         $companyData['user_id'] = $this->user->id;
 
-        // Debugging statement
-        Log::info('Company Data:', $companyData);
-
         $response = $this->postJson('/api/companies', $companyData, ['Authorization' => "Bearer {$this->token}"]);
-
-        // Debugging statement
-        Log::info('Response:', $response->json());
 
         if (isset($companyData['size']) && $companyData['size'] === 'Invalid') {
             $response->assertStatus(422);
@@ -225,6 +221,73 @@ class CompanyControllerTest extends TestCase
         $response = $this->getJson('/api/companies');
 
         $response->assertStatus(401);
+    }
+
+    /**
+     * Test handling an exception in the CompanyController.
+     *
+     * @return void
+     */
+    public function testHandleException(): void
+    {
+        // Simulate an exception in the CompanyService
+        $this->app->instance(CompanyServiceInterface::class, new class implements CompanyServiceInterface {
+            public function create(array $data): array { throw new Exception('Test exception'); }
+            public function findAll(): array { throw new Exception('Test exception'); }
+            public function findById(int $id): array | null { throw new Exception('Test exception'); }
+            public function update(int $id, array $data): array { throw new Exception('Test exception'); }
+            public function delete(int $id): bool { throw new Exception('Test exception'); }
+            public function findByEmail(string $email): array | null { throw new Exception('Test exception'); }
+            public function findByCnpj(string $cnpj): array | null { throw new Exception('Test exception'); }
+            public function findByTradeName(string $tradeName): array | null { throw new Exception('Test exception'); }
+            public function findByLegalName(string $legalName): array | null { throw new Exception('Test exception'); }
+            public function findByPhone(string $phone): array | null { throw new Exception('Test exception'); }
+            public function findBySize(string $size): array | null { throw new Exception('Test exception'); }
+            public function findAllByUserId(): array { throw new Exception('Test exception'); }
+        });
+
+        $response = $this->postJson('/api/companies', [
+            'legal_name' => 'Company Inc.',
+            'trade_name' => 'Company',
+            'email' => 'company@gmail.com',
+            'phone' => '1234567890',
+            'address' => '1234 Company St.',
+            'cnpj' => '12345678901234',
+            'size' => 'MEI',
+            'user_id' => $this->user->id,
+        ], ['Authorization' => "Bearer {$this->token}"]);
+
+        $response->assertStatus(500)
+            ->assertJsonFragment(['message' => 'Test exception']);
+    }
+
+    /**
+     * Test handling a NotFoundHttpException in the CompanyController.
+     *
+     * @return void
+     */
+    public function testHandleNotFoundHttpException(): void
+    {
+        // Simulate a NotFoundHttpException in the CompanyService
+        $this->app->instance(CompanyServiceInterface::class, new class implements CompanyServiceInterface {
+            public function create(array $data): array { throw new NotFoundHttpException('Company not found.'); }
+            public function findAll(): array { throw new NotFoundHttpException('Company not found.'); }
+            public function findById(int $id): array | null { throw new NotFoundHttpException('Company not found.'); }
+            public function update(int $id, array $data): array { throw new NotFoundHttpException('Company not found.'); }
+            public function delete(int $id): bool { throw new NotFoundHttpException('Company not found.'); }
+            public function findByEmail(string $email): array | null { throw new NotFoundHttpException('Company not found.'); }
+            public function findByCnpj(string $cnpj): array | null { throw new NotFoundHttpException('Company not found.'); }
+            public function findByTradeName(string $tradeName): array | null { throw new NotFoundHttpException('Company not found.'); }
+            public function findByLegalName(string $legalName): array | null { throw new NotFoundHttpException('Company not found.'); }
+            public function findByPhone(string $phone): array | null { throw new NotFoundHttpException('Company not found.'); }
+            public function findBySize(string $size): array | null { throw new NotFoundHttpException('Company not found.'); }
+            public function findAllByUserId(): array { throw new NotFoundHttpException('Company not found.'); }
+        });
+
+        $response = $this->getJson('/api/companies/999', ['Authorization' => "Bearer {$this->token}"]);
+
+        $response->assertStatus(404)
+            ->assertJsonFragment(['message' => 'Company not found.']);
     }
 
     /**

@@ -4,8 +4,9 @@ namespace Tests\Feature\Http\Controllers;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use Exception;
+use App\Contracts\Services\AuthServiceInterface;
+use Illuminate\Http\JsonResponse;
 
 /**
  * Class AuthControllerTest
@@ -132,7 +133,6 @@ class AuthControllerTest extends TestCase
      *
      * @return void
      */
-
     public function testRegisterWithValidData(): void
     {
         $data = [
@@ -174,6 +174,57 @@ class AuthControllerTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['name', 'email', 'password']);
+    }
+
+    /**
+     * Test handling an exception in the AuthController.
+     *
+     * @return void
+     */
+    public function testHandleLoginException(): void
+    {
+        // Simulate an exception in the AuthService
+        $this->app->instance(AuthServiceInterface::class, new class implements AuthServiceInterface {
+            public function login(array $data): JsonResponse { throw new Exception('Test exception'); }
+            public function logout(): JsonResponse { throw new Exception('Test exception'); }
+        });
+
+        $response = $this->postJson('/api/login', [
+            'email' => 'john@example.com',
+            'password' => 'password',
+        ]);
+
+        $response->assertStatus(500)
+            ->assertJsonFragment(['message' => 'Login failed. Please try again later.']);
+    }
+
+    /**
+     * Test handling an exception in the AuthController.
+     *
+     * @return void
+     */
+    public function testHandleLogoutException(): void
+    {
+        $data = $this->registerUser();
+
+        $loginResponse = $this->loginUser($data['email'], $data['password']);
+
+        $token = $loginResponse->json('token');
+
+        // Simulate an exception in the AuthService
+        $this->app->instance(AuthServiceInterface::class, new class implements AuthServiceInterface {
+            public function login(array $data): JsonResponse { throw new Exception('Test exception'); }
+            public function logout(): JsonResponse { throw new Exception('Test exception'); }
+        });
+
+        $response = $this->postJson(
+            '/api/logout',
+            [],
+            ['Authorization' => 'Bearer ' . $token]
+        );
+
+        $response->assertStatus(500)
+            ->assertJsonFragment(['message' => 'Logout failed. Please try again later.']);
     }
 
     /**

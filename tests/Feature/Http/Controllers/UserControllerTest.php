@@ -6,6 +6,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Exception;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Contracts\Services\UserServiceInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
@@ -23,14 +26,6 @@ class UserControllerTest extends TestCase
     private const REGISTER_URL = '/api/register';
     private const LOGIN_URL = '/api/login';
     private const USERS_URL = '/api/users';
-
-    /**
-     * Set up the test environment.
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
 
     /**
      * Authenticate a user and return the token and user.
@@ -206,6 +201,106 @@ class UserControllerTest extends TestCase
     }
 
     /**
+     * Test handling an exception in the UserController.
+     *
+     * @return void
+     */
+    public function testHandleException(): void
+    {
+        $authData = $this->authenticate();
+        $token = $authData['token'];
+
+        // Simulate an exception in the UserService
+        $this->app->instance(UserServiceInterface::class, new class implements UserServiceInterface {
+            public function create(array $data): array
+            {
+                throw new Exception('Test exception');
+            }
+            public function findById(int $id): array
+            {
+                throw new Exception('Test exception');
+            }
+            public function update(int $id, array $data): array
+            {
+                throw new Exception('Test exception');
+            }
+            public function delete(int $id): bool
+            {
+                throw new Exception('Test exception');
+            }
+            public function findByUsername(string $username): array
+            {
+                throw new Exception('Test exception');
+            }
+            public function findByEmail(string $email): array
+            {
+                throw new Exception('Test exception');
+            }
+            public function findAll(): array
+            {
+                throw new Exception('Test exception');
+            }
+        });
+
+        $response = $this->getJson(self::USERS_URL . '/user', [
+            'Authorization' => "Bearer $token"
+        ]);
+
+        $response->assertStatus(500)
+            ->assertJsonFragment(['message' => 'Test exception']);
+    }
+
+    /**
+     * Test handling a NotFoundHttpException in the UserController.
+     *
+     * @return void
+     */
+    public function testHandleNotFoundHttpException(): void
+    {
+        $authData = $this->authenticate();
+        $token = $authData['token'];
+
+        // Simulate a NotFoundHttpException in the UserService
+        $this->app->instance(UserServiceInterface::class, new class implements UserServiceInterface {
+            public function create(array $data): array
+            {
+                throw new NotFoundHttpException('User not found.');
+            }
+            public function findById(int $id): array
+            {
+                throw new NotFoundHttpException('User not found.');
+            }
+            public function update(int $id, array $data): array
+            {
+                throw new NotFoundHttpException('User not found.');
+            }
+            public function delete(int $id): bool
+            {
+                throw new NotFoundHttpException('User not found.');
+            }
+            public function findByUsername(string $username): array
+            {
+                throw new NotFoundHttpException('User not found.');
+            }
+            public function findByEmail(string $email): array
+            {
+                throw new NotFoundHttpException('User not found.');
+            }
+            public function findAll(): array
+            {
+                throw new NotFoundHttpException('User not found.');
+            }
+        });
+
+        $response = $this->getJson(self::USERS_URL . '/user', [
+            'Authorization' => "Bearer $token"
+        ]);
+
+        $response->assertStatus(404)
+            ->assertJsonFragment(['message' => 'User not found.']);
+    }
+
+    /**
      * Data provider for valid user data.
      *
      * @return array
@@ -230,13 +325,5 @@ class UserControllerTest extends TestCase
             [['name' => 'John Doe', 'email' => 'invalid-email', 'password' => 'password']],
             [['name' => 'John Doe', 'email' => 'john@example.com', 'password' => 'short']],
         ];
-    }
-
-    /**
-     * Tear down the test environment.
-     */
-    protected function tearDown(): void
-    {
-        parent::tearDown();
     }
 }

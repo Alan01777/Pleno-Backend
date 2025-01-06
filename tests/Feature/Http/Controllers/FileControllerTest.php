@@ -8,6 +8,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Company;
 use App\Models\User;
 use App\Models\File;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Exception;
+use App\Contracts\Services\FileServiceInterface;
 
 class FileControllerTest extends TestCase
 {
@@ -195,5 +198,185 @@ class FileControllerTest extends TestCase
         ]);
 
         $response->assertStatus(404);
+    }
+
+    public function testStoreHandlesException()
+    {
+        $token = $this->authenticate();
+        $file = UploadedFile::fake()->image('test.jpg');
+        $company = $this->company;
+
+        // Simulate an exception in the FileService
+        $this->app->instance(FileServiceInterface::class, new class implements FileServiceInterface {
+            public function create(UploadedFile $file, int $companyId): File { throw new Exception('Test exception'); }
+            public function findById(int $id): array { throw new Exception('Test exception'); }
+            public function update(int $id, UploadedFile $file, int $companyId): bool { throw new Exception('Test exception'); }
+            public function delete(int $id): bool { throw new Exception('Test exception'); }
+            public function findAllByUserId(): array { throw new Exception('Test exception'); }
+        });
+
+        $response = $this->postJson('/api/files', [
+            'company_id' => $company->id,
+            'file' => $file,
+        ], [
+            'Authorization' => "Bearer $token"
+        ]);
+
+        $response->assertStatus(500)
+            ->assertJsonFragment(['message' => 'Test exception']);
+    }
+
+    public function testUpdateHandlesException()
+    {
+        $token = $this->authenticate();
+        $file = UploadedFile::fake()->image('test.jpg');
+        $company = $this->company;
+
+        // Create a file record in the database first
+        $createdFile = File::factory()->create([
+            'company_id' => $company->id,
+            'user_id' => $this->user->id,
+        ]);
+
+        // Simulate an exception in the FileService
+        $this->app->instance(FileServiceInterface::class, new class implements FileServiceInterface {
+            public function create(UploadedFile $file, int $companyId): File { throw new Exception('Test exception'); }
+            public function findById(int $id): array { throw new Exception('Test exception'); }
+            public function update(int $id, UploadedFile $file, int $companyId): bool { throw new Exception('Test exception'); }
+            public function delete(int $id): bool { throw new Exception('Test exception'); }
+            public function findAllByUserId(): array { throw new Exception('Test exception'); }
+        });
+
+        $response = $this->putJson('/api/files/' . $createdFile->id, [
+            'company_id' => $company->id,
+            'file' => $file,
+        ], [
+            'Authorization' => "Bearer $token"
+        ]);
+
+        $response->assertStatus(500)
+            ->assertJsonFragment(['message' => 'Test exception']);
+    }
+
+    public function testDestroyHandlesException()
+    {
+        $token = $this->authenticate();
+
+        // Create a file record in the database first
+        $createdFile = File::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+        ]);
+
+        // Simulate an exception in the FileService
+        $this->app->instance(FileServiceInterface::class, new class implements FileServiceInterface {
+            public function create(UploadedFile $file, int $companyId): File { throw new Exception('Test exception'); }
+            public function findById(int $id): array { throw new Exception('Test exception'); }
+            public function update(int $id, UploadedFile $file, int $companyId): bool { throw new Exception('Test exception'); }
+            public function delete(int $id): bool { throw new Exception('Test exception'); }
+            public function findAllByUserId(): array { throw new Exception('Test exception'); }
+        });
+
+        $response = $this->deleteJson('/api/files/' . $createdFile->id, [], [
+            'Authorization' => "Bearer $token"
+        ]);
+
+        $response->assertStatus(500)
+            ->assertJsonFragment(['message' => 'Test exception']);
+    }
+
+    public function testShowHandlesException()
+    {
+        $token = $this->authenticate();
+
+        // Create a file record in the database first
+        $createdFile = File::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+        ]);
+
+        // Simulate an exception in the FileService
+        $this->app->instance(FileServiceInterface::class, new class implements FileServiceInterface {
+            public function create(UploadedFile $file, int $companyId): File { throw new Exception('Test exception'); }
+            public function findById(int $id): array { throw new Exception('Test exception'); }
+            public function update(int $id, UploadedFile $file, int $companyId): bool { throw new Exception('Test exception'); }
+            public function delete(int $id): bool { throw new Exception('Test exception'); }
+            public function findAllByUserId(): array { throw new Exception('Test exception'); }
+        });
+
+        $response = $this->getJson('/api/files/' . $createdFile->id, [
+            'Authorization' => "Bearer $token"
+        ]);
+
+        $response->assertStatus(500)
+            ->assertJsonFragment(['message' => 'Test exception']);
+    }
+
+    public function testShowHandlesNotFoundHttpException()
+    {
+        $token = $this->authenticate();
+
+        // Simulate a NotFoundHttpException in the FileService
+        $this->app->instance(FileServiceInterface::class, new class implements FileServiceInterface {
+            public function create(UploadedFile $file, int $companyId): File { throw new NotFoundHttpException('File not found.'); }
+            public function findById(int $id): array { throw new NotFoundHttpException('File not found.'); }
+            public function update(int $id, UploadedFile $file, int $companyId): bool { throw new NotFoundHttpException('File not found.'); }
+            public function delete(int $id): bool { throw new NotFoundHttpException('File not found.'); }
+            public function findAllByUserId(): array { throw new NotFoundHttpException('File not found.'); }
+        });
+
+        $response = $this->getJson('/api/files/999', [
+            'Authorization' => "Bearer $token"
+        ]);
+
+        $response->assertStatus(404)
+            ->assertJsonFragment(['message' => 'File not found.']);
+    }
+
+    public function testUpdateHandlesNotFoundHttpException()
+    {
+        $token = $this->authenticate();
+        $file = UploadedFile::fake()->image('test.jpg');
+        $company = $this->company;
+
+        // Simulate a NotFoundHttpException in the FileService
+        $this->app->instance(FileServiceInterface::class, new class implements FileServiceInterface {
+            public function create(UploadedFile $file, int $companyId): File { throw new NotFoundHttpException('File not found.'); }
+            public function findById(int $id): array { throw new NotFoundHttpException('File not found.'); }
+            public function update(int $id, UploadedFile $file, int $companyId): bool { throw new NotFoundHttpException('File not found.'); }
+            public function delete(int $id): bool { throw new NotFoundHttpException('File not found.'); }
+            public function findAllByUserId(): array { throw new NotFoundHttpException('File not found.'); }
+        });
+
+        $response = $this->putJson('/api/files/999', [
+            'company_id' => $company->id,
+            'file' => $file,
+        ], [
+            'Authorization' => "Bearer $token"
+        ]);
+
+        $response->assertStatus(404)
+            ->assertJsonFragment(['message' => 'File not found.']);
+    }
+
+    public function testDestroyHandlesNotFoundHttpException()
+    {
+        $token = $this->authenticate();
+
+        // Simulate a NotFoundHttpException in the FileService
+        $this->app->instance(FileServiceInterface::class, new class implements FileServiceInterface {
+            public function create(UploadedFile $file, int $companyId): File { throw new NotFoundHttpException('File not found.'); }
+            public function findById(int $id): array { throw new NotFoundHttpException('File not found.'); }
+            public function update(int $id, UploadedFile $file, int $companyId): bool { throw new NotFoundHttpException('File not found.'); }
+            public function delete(int $id): bool { throw new NotFoundHttpException('File not found.'); }
+            public function findAllByUserId(): array { throw new NotFoundHttpException('File not found.'); }
+        });
+
+        $response = $this->deleteJson('/api/files/999', [], [
+            'Authorization' => "Bearer $token"
+        ]);
+
+        $response->assertStatus(404)
+            ->assertJsonFragment(['message' => 'File not found.']);
     }
 }

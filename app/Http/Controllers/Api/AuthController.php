@@ -5,6 +5,8 @@ use App\Http\Controllers\Controller;
 use App\Contracts\Services\AuthServiceInterface;
 use App\Http\Requests\AuthRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 /**
  * Class AuthController
@@ -37,7 +39,16 @@ class AuthController extends Controller
 
     public function login(AuthRequest $request): JsonResponse
     {
-        return $this->authService->login($request->validated());
+        try{
+            $data = $request->validated();
+            return $this->authService->login($data);
+        } catch (Exception $e) {
+            Log::error('Login failed: ' . $e->getMessage());
+            return response()->json(
+                ['message' => 'Login failed. Please try again later.'],
+                500
+            );
+        }
     }
 
     /**
@@ -47,7 +58,15 @@ class AuthController extends Controller
      */
     public function logout(): JsonResponse
     {
-        $this->authService->logout();
-        return response()->json(['message' => __('auth.logged_out')], 200);
+        try {
+            $this->authService->logout();
+            return response()->json(['message' => 'Logged out successfully']);
+        } catch (Exception $e) {
+            Log::error('Logout failed: ' . $e->getMessage());
+            return response()->json(
+                ['message' => 'Logout failed. Please try again later.'],
+                500
+            );
+        }
     }
 }

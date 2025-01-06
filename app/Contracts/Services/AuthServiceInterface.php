@@ -26,5 +26,5 @@ interface AuthServiceInterface
      *
      * @return void The JSON response containing the authentication result.
      */
-    public function logout(): void;
+    public function logout(): JsonResponse;
 }

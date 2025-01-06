@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class AuthService
@@ -37,32 +39,49 @@ class AuthService implements AuthServiceInterface
      */
     public function login(array $data): JsonResponse
     {
-        $user = $this->userRepository->findByEmail($data['email']);
+        try {
+            $user = $this->userRepository->findByEmail($data['email']);
 
-        if (!$user || !Hash::check($data['password'], $user->password)) {
+            if (!$user || !Hash::check($data['password'], $user->password)) {
+                return response()->json(
+                    ['message' => __('auth.failed')],
+                    401
+                );
+            }
+
+            $token = $user->createToken('auth_token_' . $user->id)->plainTextToken;
             return response()->json(
-                ['message' => __('auth.failed')],
-                401
+                ['token' => $token],
+                200
+            );
+        } catch (Exception $e) {
+            Log::error('Login failed: ' . $e->getMessage());
+            return response()->json(
+                ['message' => 'Login failed. Please try again later.'],
+                500
             );
         }
-
-        $token = $user->createToken('auth_token_' . $user->id)->plainTextToken;
-        return response()->json(
-            ['token' => $token],
-            200
-        );
     }
 
     /**
      * Log out the authenticated user.
      *
-     * @return void
+     * @return JsonResponse
      */
-    public function logout(): void
+    public function logout(): JsonResponse
     {
-        $user = Auth::user();
-        if ($user instanceof User) {
-            $this->userRepository->deleteTokens($user);
+        try {
+            $user = Auth::user();
+            if ($user instanceof User) {
+                $this->userRepository->deleteTokens($user);
+            }
+            return response()->json(['message' => __('auth.logged_out')], 200);
+        } catch (Exception $e) {
+            Log::error('Logout failed: ' . $e->getMessage());
+            return response()->json(
+                ['message' => 'Logout failed. Please try again later.'],
+                500
+            );
         }
     }
 }

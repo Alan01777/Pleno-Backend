@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Contracts\Services\FileServiceInterface;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Exception;
 
 class FileController extends Controller
 {
@@ -15,64 +18,73 @@ class FileController extends Controller
         $this->fileService = $fileService;
     }
 
-    /**
-     * Store newly created files in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    public function index()
+    {
+        try {
+            $files = $this->fileService->findAllByUserId();
+            return response()->json($files);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
     public function store(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048', // Adjust the validation rules as needed
+            'file' => 'required|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
             'company_id' => 'required|integer|exists:companies,id',
         ]);
 
-        $files = $request->file('file');
-        $companyId = $request->input('company_id');
-        $createdFiles = $this->fileService->create($files, $companyId);
-
-        return response()->json($createdFiles, 201);
+        try {
+            $file = $request->file('file');
+            $companyId = $request->input('company_id');
+            $createdFile = $this->fileService->create($file, $companyId);
+            return response()->json($createdFile, 201);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
-    /**
-     * Update the specified file in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function update(Request $request, int $id)
+    public function show($id)
+    {
+        try {
+            $file = $this->fileService->findById($id);
+            return response()->json($file);
+        } catch (NotFoundHttpException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function update(Request $request, $id)
     {
         $request->validate([
-            'file' => 'required|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048', // Adjust the validation rules as needed
+            'file' => 'required|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
             'company_id' => 'required|integer|exists:companies,id',
         ]);
 
-        $file = $request->file('file');
-        $companyId = $request->input('company_id');
-        $updated = $this->fileService->update($id, $file, $companyId);
-
-        return response()->json(['updated' => $updated]);
+        try {
+            $file = $request->file('file');
+            $companyId = $request->input('company_id');
+            $updated = $this->fileService->update($id, $file, $companyId);
+            return response()->json(['updated' => $updated]);
+        } catch (NotFoundHttpException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
-    /**
-     * Remove the specified file from storage.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function destroy($id)
     {
-        $deleted = $this->fileService->delete($id);
-
-        return response()->json(['deleted' => $deleted]);
-    }
-
-    public function index()
-    {
-        $files = $this->fileService->findAllByUserId();
-
-        return response()->json([$files]);
+        try {
+            $deleted = $this->fileService->delete($id);
+            return response()->json(['deleted' => $deleted]);
+        } catch (NotFoundHttpException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 }

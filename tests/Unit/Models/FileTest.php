@@ -43,15 +43,24 @@ class FileTest extends TestCase
      */
     public function testItHasFillableAttributes(): void
     {
-        $file = new File();
+        $file = new File([
+            'name' => 'example.txt',
+            'hash_name' => 'example_hash.txt',
+            'path' => 'files/example.txt',
+            'mime_type' => 'text/plain',
+            'size' => 12345,
+            'company_id' => 1,
+            'user_id' => 1,
+        ]);
 
         $this->assertEquals([
             'name',
+            'hash_name',
             'path',
-            'extension',
             'mime_type',
             'size',
             'company_id',
+            'user_id',
         ], $file->getFillable());
     }
 

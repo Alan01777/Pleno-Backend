@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Company;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,10 +20,12 @@ class FileFactory extends Factory
     {
         return [
             'name' => $this->faker->word,
+            'hash_name' => $this->faker->word,
             'path' => $this->faker->word,
-            'extension' => $this->faker->word,
-            'mime_type' => $this->faker->word,
+            'mime_type' => $this->faker->mimeType,
             'size' => $this->faker->randomNumber(),
+            'company_id' => Company::factory(),
+            'user_id' => User::factory(),
         ];
     }
 }

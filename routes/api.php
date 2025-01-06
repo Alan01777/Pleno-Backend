@@ -10,45 +10,43 @@ use App\Http\Controllers\Api\FileController;
 // Health check
 Route::get('/healthcheck', function () {
     return response()->json(['status' => 'ok']);
-});
+})->name('healthcheck');
 
 // Authentication routes
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [UserController::class, 'store']); // Register user
+Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/register', [UserController::class, 'store'])->name('register'); // Register user
 
-// Protected routes
+// Protected user routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::prefix('users')->group(function () {
-        Route::get('/{id}', [UserController::class, 'show']); // Read user by ID
-        Route::put('/{id}', [UserController::class, 'update']); // Update user
-        Route::delete('/{id}', [UserController::class, 'destroy']); // Delete user
-        Route::get('/username/{username}', [UserController::class, 'findByUsername']); // Find user by username
-        Route::get('/email/{email}', [UserController::class, 'findByEmail']); // Find user by email
+        Route::get('/user', [UserController::class, 'show'])->name('user.show'); // Read authenticated user
+        Route::put('/user', [UserController::class, 'update'])->name('user.update'); // Update authenticated user
+        Route::delete('/user', [UserController::class, 'destroy'])->name('user.destroy'); // Delete authenticated user
+        Route::get('/username/{username}', [UserController::class, 'findByUsername'])->name('user.findByUsername'); // Find user by username
+        Route::get('/email/{email}', [UserController::class, 'findByEmail'])->name('user.findByEmail'); // Find user by email
     });
 });
 
-
-// // Company routes
+// Company routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('companies')->group(function () {
-        Route::get('/', [CompanyController::class, 'index']); // List all companies
-        Route::post('/', [CompanyController::class, 'store']); // Create a new company
-        Route::get('/{id}', [CompanyController::class, 'show']); // Read company by ID
-        Route::put('/{id}', [CompanyController::class, 'update']); // Update company
-        Route::delete('/{id}', [CompanyController::class, 'destroy']); // Delete company
+        Route::get('/', [CompanyController::class, 'index'])->name('companies.index'); // List all companies
+        Route::post('/', [CompanyController::class, 'store'])->name('companies.store'); // Create a new company
+        Route::get('/{id}', [CompanyController::class, 'show'])->name('companies.show'); // Read company by ID
+        Route::put('/{id}', [CompanyController::class, 'update'])->name('companies.update'); // Update company
+        Route::delete('/{id}', [CompanyController::class, 'destroy'])->name('companies.destroy'); // Delete company
     });
 });
-
 
 // File Routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::prefix('file')->group(function () {
-        Route::get('/', [FileController::class, 'index']);
-        Route::post('/', [FileController::class, 'store']);
-        Route::get('/{id}', [FileController::class, 'show']);
-        Route::put('/{id}', [FileController::class, 'update']);
-        Route::delete('/{id}', [FileController::class, 'destroy']);
+    Route::prefix('files')->group(function () {
+        Route::get('/', [FileController::class, 'index'])->name('files.index');
+        Route::post('/', [FileController::class, 'store'])->name('files.store');
+        Route::get('/{id}', [FileController::class, 'show'])->name('files.show');
+        Route::put('/{id}', [FileController::class, 'update'])->name('files.update');
+        Route::delete('/{id}', [FileController::class, 'destroy'])->name('files.destroy');
     });
 });

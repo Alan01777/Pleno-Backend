@@ -13,9 +13,9 @@ interface FileServiceInterface
     /**
      * Summary of findById
      * @param int $id The Id of the file to return
-     * @return string The download URL of the file in the bucket
+     * @return array The download URL of the file in the bucket
      */
-    public function findById(int $id): string;
+    public function findById(int $id): array;
 
     public function findAllByUserId(): array;
 

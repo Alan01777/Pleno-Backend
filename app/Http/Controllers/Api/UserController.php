@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
 use App\Contracts\Services\UserServiceInterface;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Exception;
 
 /**
  * Class UserController
@@ -36,51 +39,72 @@ class UserController extends Controller
      */
     public function store(UserRequest $request): JsonResponse
     {
-        $data = $request->validated();
-        $user = $this->userService->create($data);
-
-        return response()->json($user, 201);
+        try {
+            $data = $request->validated();
+            $user = $this->userService->create($data);
+            return response()->json($user, 201);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Display the specified user.
+     * Display the authenticated user.
      *
-     * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id): JsonResponse
+    public function show(): JsonResponse
     {
-        $user = $this->userService->findById($id);
-
-        return response()->json($user);
+        try {
+            $userId = Auth::id();
+            $user = $this->userService->findById($userId);
+            if (!$user) {
+                throw new NotFoundHttpException('User not found.');
+            }
+            return response()->json($user);
+        } catch (NotFoundHttpException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Update the specified user in storage.
+     * Update the authenticated user in storage.
      *
      * @param UserRequest $request
-     * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(UserRequest $request, $id): JsonResponse
+    public function update(UserRequest $request): JsonResponse
     {
-        $data = $request->validated();
-        $user = $this->userService->update($id, $data);
-
-        return response()->json($user);
+        try {
+            $data = $request->validated();
+            $userId = Auth::id();
+            $user = $this->userService->update($userId, $data);
+            return response()->json($user);
+        } catch (NotFoundHttpException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Remove the specified user from storage.
+     * Remove the authenticated user from storage.
      *
-     * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id): JsonResponse
+    public function destroy(): JsonResponse
     {
-        $this->userService->delete($id);
-
-        return response()->json(null, 204);
+        try {
+            $userId = Auth::id();
+            $this->userService->delete($userId);
+            return response()->json(null, 204);
+        } catch (NotFoundHttpException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -91,9 +115,17 @@ class UserController extends Controller
      */
     public function findByUsername($username): JsonResponse
     {
-        $user = $this->userService->findByUsername($username);
-
-        return response()->json($user);
+        try {
+            $user = $this->userService->findByUsername($username);
+            if (!$user) {
+                throw new NotFoundHttpException('User not found.');
+            }
+            return response()->json($user);
+        } catch (NotFoundHttpException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -104,8 +136,16 @@ class UserController extends Controller
      */
     public function findByEmail($email): JsonResponse
     {
-        $user = $this->userService->findByEmail($email);
-
-        return response()->json($user);
+        try {
+            $user = $this->userService->findByEmail($email);
+            if (!$user) {
+                throw new NotFoundHttpException('User not found.');
+            }
+            return response()->json($user);
+        } catch (NotFoundHttpException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 }

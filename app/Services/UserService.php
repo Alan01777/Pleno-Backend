@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Contracts\Services\UserServiceInterface;
 use App\Contracts\Repositories\UserRepositoryInterface;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 /**
  * Class UserService
@@ -33,7 +35,12 @@ class UserService implements UserServiceInterface
      */
     public function findAll(): array
     {
-        return $this->userRepository->findAll();
+        try {
+            return $this->userRepository->findAll();
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve users: ' . $e->getMessage());
+            throw new Exception('Failed to retrieve users.');
+        }
     }
 
     /**
@@ -44,7 +51,12 @@ class UserService implements UserServiceInterface
      */
     public function create(array $data): array
     {
-        return $this->userRepository->create($data)->toArray();
+        try {
+            return $this->userRepository->create($data)->toArray();
+        } catch (Exception $e) {
+            Log::error('Failed to create user: ' . $e->getMessage());
+            throw new Exception('Failed to create user.');
+        }
     }
 
     /**
@@ -55,8 +67,13 @@ class UserService implements UserServiceInterface
      */
     public function findById(int $id): array | null
     {
-        $user = $this->userRepository->findById($id);
-        return $user ? $user->toArray() : null;
+        try {
+            $user = $this->userRepository->findById($id);
+            return $user ? $user->toArray() : null;
+        } catch (Exception $e) {
+            Log::error('Failed to find user: ' . $e->getMessage());
+            throw new Exception('Failed to find user.');
+        }
     }
 
     /**
@@ -68,8 +85,13 @@ class UserService implements UserServiceInterface
      */
     public function update(int $id, array $data): array
     {
-        $this->userRepository->update($id, $data);
-        return $this->userRepository->findById($id)->toArray();
+        try {
+            $this->userRepository->update($id, $data);
+            return $this->userRepository->findById($id)->toArray();
+        } catch (Exception $e) {
+            Log::error('Failed to update user: ' . $e->getMessage());
+            throw new Exception('Failed to update user.');
+        }
     }
 
     /**
@@ -80,7 +102,12 @@ class UserService implements UserServiceInterface
      */
     public function delete(int $id): bool
     {
-        return $this->userRepository->delete($id);
+        try {
+            return $this->userRepository->delete($id);
+        } catch (Exception $e) {
+            Log::error('Failed to delete user: ' . $e->getMessage());
+            throw new Exception('Failed to delete user.');
+        }
     }
 
     /**
@@ -91,7 +118,12 @@ class UserService implements UserServiceInterface
      */
     public function findByUsername(string $username): array
     {
-        return $this->userRepository->findByUsername($username)->toArray();
+        try {
+            return $this->userRepository->findByUsername($username)->toArray();
+        } catch (Exception $e) {
+            Log::error('Failed to find user by username: ' . $e->getMessage());
+            throw new Exception('Failed to find user by username.');
+        }
     }
 
     /**
@@ -102,6 +134,11 @@ class UserService implements UserServiceInterface
      */
     public function findByEmail(string $email): array
     {
-        return $this->userRepository->findByEmail($email)->toArray();
+        try {
+            return $this->userRepository->findByEmail($email)->toArray();
+        } catch (Exception $e) {
+            Log::error('Failed to find user by email: ' . $e->getMessage());
+            throw new Exception('Failed to find user by email.');
+        }
     }
 }

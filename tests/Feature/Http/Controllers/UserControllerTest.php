@@ -103,7 +103,7 @@ class UserControllerTest extends TestCase
     }
 
     /**
-     * Test showing a user.
+     * Test showing the authenticated user.
      *
      * @return void
      */
@@ -113,7 +113,7 @@ class UserControllerTest extends TestCase
         $token = $authData['token'];
         $user = $authData['user'];
 
-        $response = $this->getJson(self::USERS_URL . '/' . $user->id, [
+        $response = $this->getJson(self::USERS_URL . '/user', [
             'Authorization' => "Bearer $token"
         ]);
 
@@ -122,7 +122,7 @@ class UserControllerTest extends TestCase
     }
 
     /**
-     * Test updating a user with valid data.
+     * Test updating the authenticated user with valid data.
      *
      * @param array $data
      * @return void
@@ -134,7 +134,7 @@ class UserControllerTest extends TestCase
         $token = $authData['token'];
         $user = $authData['user'];
 
-        $response = $this->putJson("/api/users/{$user->id}", $data, [
+        $response = $this->putJson(self::USERS_URL . '/user', $data, [
             'Authorization' => "Bearer $token"
         ]);
 
@@ -148,7 +148,7 @@ class UserControllerTest extends TestCase
     }
 
     /**
-     * Test deleting a user.
+     * Test deleting the authenticated user.
      *
      * @return void
      */
@@ -158,7 +158,7 @@ class UserControllerTest extends TestCase
         $token = $authData['token'];
         $user = $authData['user'];
 
-        $response = $this->deleteJson("/api/users/{$user->id}", [], [
+        $response = $this->deleteJson(self::USERS_URL . '/user', [], [
             'Authorization' => "Bearer $token"
         ]);
 
@@ -178,7 +178,7 @@ class UserControllerTest extends TestCase
         $token = $authData['token'];
         $user = $authData['user'];
 
-        $response = $this->getJson("/api/users/username/{$user->name}", [
+        $response = $this->getJson(self::USERS_URL . "/username/{$user->name}", [
             'Authorization' => "Bearer $token"
         ]);
 
@@ -197,7 +197,7 @@ class UserControllerTest extends TestCase
         $token = $authData['token'];
         $user = $authData['user'];
 
-        $response = $this->getJson("/api/users/email/{$user->email}", [
+        $response = $this->getJson(self::USERS_URL . "/email/{$user->email}", [
             'Authorization' => "Bearer $token"
         ]);
 

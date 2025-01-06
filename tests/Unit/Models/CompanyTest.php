@@ -73,7 +73,9 @@ class CompanyTest extends TestCase
      */
     public function testItHasManyFiles(): void
     {
-        $file = File::factory()->create(['company_id' => $this->company->id]);
+        $file = File::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id]);
 
         $this->assertInstanceOf(File::class, $this->company->files->first());
         $this->assertEquals($file->id, $this->company->files->first()->id);

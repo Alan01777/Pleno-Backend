@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CompanyRequest;
 use App\Contracts\Services\CompanyServiceInterface;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Exception;
 
 /**
  * Class CompanyController
@@ -36,10 +38,13 @@ class CompanyController extends Controller
      */
     public function store(CompanyRequest $request): JsonResponse
     {
-        $data = $request->validated();
-        $company = $this->companyService->create($data);
-
-        return response()->json($company, 201);
+        try {
+            $data = $request->validated();
+            $company = $this->companyService->create($data);
+            return response()->json($company, 201);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -50,9 +55,17 @@ class CompanyController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $company = $this->companyService->findById($id);
-
-        return response()->json($company);
+        try {
+            $company = $this->companyService->findById($id);
+            if (!$company) {
+                throw new NotFoundHttpException('Company not found.');
+            }
+            return response()->json($company);
+        } catch (NotFoundHttpException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -64,10 +77,15 @@ class CompanyController extends Controller
      */
     public function update(CompanyRequest $request, $id): JsonResponse
     {
-        $data = $request->validated();
-        $company = $this->companyService->update($id, $data);
-
-        return response()->json($company);
+        try {
+            $data = $request->validated();
+            $company = $this->companyService->update($id, $data);
+            return response()->json($company);
+        } catch (NotFoundHttpException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -78,9 +96,14 @@ class CompanyController extends Controller
      */
     public function destroy($id): JsonResponse
     {
-        $this->companyService->delete($id);
-
-        return response()->json(null, 204);
+        try {
+            $this->companyService->delete($id);
+            return response()->json(null, 204);
+        } catch (NotFoundHttpException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -90,8 +113,11 @@ class CompanyController extends Controller
      */
     public function index(): JsonResponse
     {
-        $companies = $this->companyService->findAll();
-
-        return response()->json($companies);
+        try {
+            $companies = $this->companyService->findAll();
+            return response()->json($companies);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 }

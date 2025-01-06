@@ -32,6 +32,9 @@ jobs:
           mkdir -p database
           touch database/database.sqlite
 
+      - name: Set Local Storage Environment Variables
+        run: echo "FILESYSTEM_DISK=local" >> .env
+
       - name: Execute tests (Unit and Feature tests) via PHPUnit
         env:
           DB_CONNECTION: sqlite

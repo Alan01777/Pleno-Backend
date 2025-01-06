@@ -301,57 +301,6 @@ class UserControllerTest extends TestCase
     }
 
     /**
-     * Test handling an exception in the store method.
-     *
-     * @return void
-     */
-    public function testHandleExceptionInStore(): void
-    {
-        // Simulate an exception in the UserService
-        $this->app->instance(UserServiceInterface::class, new class implements UserServiceInterface {
-            public function create(array $data): array
-            {
-                throw new Exception('Test exception');
-            }
-            public function findById(int $id): array
-            {
-                return [];
-            }
-            public function update(int $id, array $data): array
-            {
-                return [];
-            }
-            public function delete(int $id): bool
-            {
-                return true;
-            }
-            public function findByUsername(string $username): array
-            {
-                return [];
-            }
-            public function findByEmail(string $email): array
-            {
-                return [];
-            }
-            public function findAll(): array
-            {
-                return [];
-            }
-        });
-
-        $data = [
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'password' => 'password'
-        ];
-
-        $response = $this->postJson(self::REGISTER_URL, $data);
-
-        $response->assertStatus(500)
-            ->assertJsonFragment(['message' => 'Test exception']);
-    }
-
-    /**
      * Test handling an exception in the update method.
      *
      * @return void

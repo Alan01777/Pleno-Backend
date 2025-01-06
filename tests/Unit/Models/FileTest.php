@@ -2,10 +2,9 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\File;
-use App\Models\Company;
-use App\Models\User;
 use Tests\TestCase;
+use App\Models\File;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -13,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Class FileTest
  *
  * This class contains unit tests for the File model.
- * It tests the fillable attributes and relationships of the File model.
+ * It tests the relationships of the File model.
  *
  * @package Tests\Unit\Models
  */
@@ -21,9 +20,8 @@ class FileTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $user;
-    protected $company;
     protected $file;
+    protected $user;
 
     /**
      * Set up the test environment.
@@ -32,47 +30,18 @@ class FileTest extends TestCase
     {
         parent::setUp();
         $this->user = User::factory()->create();
-        $this->company = Company::factory()->create(['user_id' => $this->user->id]);
-        $this->file = File::factory()->create(['company_id' => $this->company->id]);
+        $this->file = File::factory()->create(['user_id' => $this->user->id]);
     }
 
     /**
-     * Test that the File model has the correct fillable attributes.
+     * Test that the File model belongs to a User.
      *
      * @return void
      */
-    public function testItHasFillableAttributes(): void
+    public function testItBelongsToUser(): void
     {
-        $file = new File([
-            'name' => 'example.txt',
-            'hash_name' => 'example_hash.txt',
-            'path' => 'files/example.txt',
-            'mime_type' => 'text/plain',
-            'size' => 12345,
-            'company_id' => 1,
-            'user_id' => 1,
-        ]);
-
-        $this->assertEquals([
-            'name',
-            'hash_name',
-            'path',
-            'mime_type',
-            'size',
-            'company_id',
-            'user_id',
-        ], $file->getFillable());
-    }
-
-    /**
-     * Test that the File model belongs to a Company.
-     *
-     * @return void
-     */
-    public function testItBelongsToACompany(): void
-    {
-        $this->assertInstanceOf(BelongsTo::class, $this->file->company());
-        $this->assertTrue($this->file->company->is($this->company));
+        $this->assertInstanceOf(BelongsTo::class, $this->file->user());
+        $this->assertEquals($this->user->id, $this->file->user->id);
     }
 
     /**
@@ -81,7 +50,6 @@ class FileTest extends TestCase
     protected function tearDown(): void
     {
         $this->file->delete();
-        $this->company->delete();
         $this->user->delete();
         parent::tearDown();
     }

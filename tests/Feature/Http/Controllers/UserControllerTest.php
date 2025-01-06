@@ -301,6 +301,165 @@ class UserControllerTest extends TestCase
     }
 
     /**
+     * Test handling an exception in the store method.
+     *
+     * @return void
+     */
+    public function testHandleExceptionInStore(): void
+    {
+        // Simulate an exception in the UserService
+        $this->app->instance(UserServiceInterface::class, new class implements UserServiceInterface {
+            public function create(array $data): array
+            {
+                throw new Exception('Test exception');
+            }
+            public function findById(int $id): array
+            {
+                return [];
+            }
+            public function update(int $id, array $data): array
+            {
+                return [];
+            }
+            public function delete(int $id): bool
+            {
+                return true;
+            }
+            public function findByUsername(string $username): array
+            {
+                return [];
+            }
+            public function findByEmail(string $email): array
+            {
+                return [];
+            }
+            public function findAll(): array
+            {
+                return [];
+            }
+        });
+
+        $data = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'password' => 'password'
+        ];
+
+        $response = $this->postJson(self::REGISTER_URL, $data);
+
+        $response->assertStatus(500)
+            ->assertJsonFragment(['message' => 'Test exception']);
+    }
+
+    /**
+     * Test handling an exception in the update method.
+     *
+     * @return void
+     */
+    public function testHandleExceptionInUpdate(): void
+    {
+        $authData = $this->authenticate();
+        $token = $authData['token'];
+        $user = $authData['user'];
+
+        // Simulate an exception in the UserService
+        $this->app->instance(UserServiceInterface::class, new class implements UserServiceInterface {
+            public function create(array $data): array
+            {
+                return [];
+            }
+            public function findById(int $id): array
+            {
+                return [];
+            }
+            public function update(int $id, array $data): array
+            {
+                throw new Exception('Test exception');
+            }
+            public function delete(int $id): bool
+            {
+                return true;
+            }
+            public function findByUsername(string $username): array
+            {
+                return [];
+            }
+            public function findByEmail(string $email): array
+            {
+                return [];
+            }
+            public function findAll(): array
+            {
+                return [];
+            }
+        });
+
+        $data = [
+            'name' => 'Jane Doe',
+            'email' => 'jane@example.com',
+            'password' => 'password'
+        ];
+
+        $response = $this->putJson(self::USERS_URL . '/user', $data, [
+            'Authorization' => "Bearer $token"
+        ]);
+
+        $response->assertStatus(500)
+            ->assertJsonFragment(['message' => 'Test exception']);
+    }
+
+    /**
+     * Test handling an exception in the delete method.
+     *
+     * @return void
+     */
+    public function testHandleExceptionInDelete(): void
+    {
+        $authData = $this->authenticate();
+        $token = $authData['token'];
+        $user = $authData['user'];
+
+        // Simulate an exception in the UserService
+        $this->app->instance(UserServiceInterface::class, new class implements UserServiceInterface {
+            public function create(array $data): array
+            {
+                return [];
+            }
+            public function findById(int $id): array
+            {
+                return [];
+            }
+            public function update(int $id, array $data): array
+            {
+                return [];
+            }
+            public function delete(int $id): bool
+            {
+                throw new Exception('Test exception');
+            }
+            public function findByUsername(string $username): array
+            {
+                return [];
+            }
+            public function findByEmail(string $email): array
+            {
+                return [];
+            }
+            public function findAll(): array
+            {
+                return [];
+            }
+        });
+
+        $response = $this->deleteJson(self::USERS_URL . '/user', [], [
+            'Authorization' => "Bearer $token"
+        ]);
+
+        $response->assertStatus(500)
+            ->assertJsonFragment(['message' => 'Test exception']);
+    }
+
+    /**
      * Data provider for valid user data.
      *
      * @return array

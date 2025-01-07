@@ -226,7 +226,7 @@ class FileControllerTest extends TestCase
             ->assertJsonFragment(['message' => 'Test exception']);
     }
 
-    public function testUpdateHandlesException()
+    public function testUpdateHandlesGeneralException()
     {
         $token = $this->authenticate();
         $file = UploadedFile::fake()->image('test.jpg');
@@ -238,13 +238,13 @@ class FileControllerTest extends TestCase
             'user_id' => $this->user->id,
         ]);
 
-        // Simulate an exception in the FileService
+        // Simulate a general exception in the FileService
         $this->app->instance(FileServiceInterface::class, new class implements FileServiceInterface {
-            public function create(UploadedFile $file, int $companyId): File { throw new Exception('Test exception'); }
-            public function findById(int $id): array { throw new Exception('Test exception'); }
-            public function update(int $id, UploadedFile $file, int $companyId): bool { throw new Exception('Test exception'); }
-            public function delete(int $id): bool { throw new Exception('Test exception'); }
-            public function findAllByUserId(): array { throw new Exception('Test exception'); }
+            public function create(UploadedFile $file, int $companyId): File { return new File(); }
+            public function findById(int $id): array { return []; }
+            public function update(int $id, UploadedFile $file, int $companyId): bool { throw new Exception('General exception'); }
+            public function delete(int $id): bool { return true; }
+            public function findAllByUserId(): array { return []; }
         });
 
         $response = $this->putJson('/api/files/' . $createdFile->id, [
@@ -255,7 +255,7 @@ class FileControllerTest extends TestCase
         ]);
 
         $response->assertStatus(500)
-            ->assertJsonFragment(['message' => 'Test exception']);
+            ->assertJsonFragment(['message' => 'General exception']);
     }
 
     public function testDestroyHandlesException()

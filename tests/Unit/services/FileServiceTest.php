@@ -147,6 +147,21 @@ class FileServiceTest extends TestCase
         $this->fileService->update($fileId, $file, $companyId);
     }
 
+    public function testHandleExceptionInUpdateWithNoFile()
+    {
+        $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
+        $companyId = 1;
+        $fileId = 1;
+
+        $existingFile = null;
+        $this->fileRepository->shouldReceive('findById')->once()->with($fileId)->andReturn($existingFile);
+
+        $this->expectException(NotFoundHttpException::class);
+        $this->expectExceptionMessage('File not found.');
+
+        $this->fileService->update($fileId, $file, $companyId);
+    }
+
     public function testHandleExceptionInFindAllByUserId()
     {
         $this->companyService->shouldReceive('findAllByUserId')->once()->andThrow(new Exception('Test exception'));

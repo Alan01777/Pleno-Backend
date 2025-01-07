@@ -78,6 +78,8 @@ class FileService implements FileServiceInterface
             $path = Storage::putFileAs('files', $file, $hashName);
             $data = $this->extractFileMetadata($file, $hashName, $path, $companyId);
             return $this->fileRepository->update($id, $data);
+        } catch (NotFoundHttpException $e) {
+            throw $e;
         } catch (Exception $e) {
             Log::error('File update failed: ' . $e->getMessage());
             throw new Exception('File update failed.');
